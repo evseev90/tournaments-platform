@@ -1,0 +1,11 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 9
+    paths:
+        - app
+        - src
+    tmpDir: storage/phpstan
+    # Домен не должен знать о фреймворке: любое обращение к Illuminate из src/*/Domain — ошибка.
+    ignoreErrors: []

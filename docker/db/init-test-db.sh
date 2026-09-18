@@ -1,0 +1,4 @@
+#!/bin/sh
+# Выполняется PostgreSQL один раз при инициализации тома: создаёт базу для тестов.
+set -e
+psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "CREATE DATABASE ${POSTGRES_DB}_test OWNER ${POSTGRES_USER};"

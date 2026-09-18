@@ -1,0 +1,51 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    image: tournaments-app
+    working_dir: /app
+    volumes:
+      - .:/app
+      - composer-cache:/home/app/.composer
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    environment:
+      DB_HOST: db
+    depends_on:
+      db:
+        condition: service_healthy
+
+  node:
+    image: node:24-alpine
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "${VITE_PORT:-5173}:5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-tournaments}
+      POSTGRES_USER: ${DB_USERNAME:-tournaments}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    ports:
+      - "${DB_PORT_HOST:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql
+      - ./docker/db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-tournaments} -d ${DB_DATABASE:-tournaments}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  db-data:
+  composer-cache:
