@@ -10,6 +10,7 @@ use Tournaments\Tournament\Domain\Event\ParticipantAdded;
 use Tournaments\Tournament\Domain\Event\ParticipantRemoved;
 use Tournaments\Tournament\Domain\Event\TournamentCreated;
 use Tournaments\Tournament\Domain\Event\TournamentFinished;
+use Tournaments\Tournament\Domain\Event\TournamentReopened;
 use Tournaments\Tournament\Domain\Event\TournamentStarted;
 use Tournaments\Tournament\Domain\Exception\NotEnoughParticipants;
 use Tournaments\Tournament\Domain\Exception\ParticipantNotFound;
@@ -166,6 +167,16 @@ final class Tournament
         }
         $this->status = TournamentStatus::Finished;
         $this->recordEvent(new TournamentFinished($this->id, $now));
+    }
+
+    /** Возврат в набор участников после отмены сетки. Проверка, что результатов нет, лежит на вызывающем. */
+    public function reopen(DateTimeImmutable $now): void
+    {
+        if ($this->status !== TournamentStatus::InProgress) {
+            throw new TournamentLocked('Only a tournament in progress can be reopened');
+        }
+        $this->status = TournamentStatus::Draft;
+        $this->recordEvent(new TournamentReopened($this->id, $now));
     }
 
     public function participant(ParticipantId $id): Participant

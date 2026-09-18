@@ -14,4 +14,6 @@ interface StageRepository
     public function ofTournament(TournamentId $tournamentId): array;
 
     public function save(Stage $stage): void;
+
+    public function remove(Stage $stage): void;
 }
