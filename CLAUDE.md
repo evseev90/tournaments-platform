@@ -22,7 +22,8 @@ docker compose exec node npm ...
 - `src/<Context>/Application` — команды и обработчики, запросы на чтение. Зависит только от Domain.
 - `src/<Context>/Infrastructure` — репозитории на Query Builder, маппинг. Eloquent в домене не используем.
 - `app/` — только Laravel: контроллеры, middleware, провайдеры, привязка интерфейсов.
-- Чтение для страниц идёт отдельными Query-классами с DTO прямо из SQL, минуя агрегаты.
+- Чтение для страниц: `TournamentFinder` собирает DTO из агрегатов. Отдельные SQL-модели чтения появятся для списков и статистики.
+- Обработчики команд работают внутри `TransactionManager`, репозитории берут строку агрегата через `lockForUpdate`. События публикуются после коммита.
 
 Контексты: `Tournament` (ядро, делаем сейчас), позже `Scheduling`, `Statistics`, `Identity`.
 

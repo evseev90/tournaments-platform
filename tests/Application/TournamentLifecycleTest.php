@@ -84,7 +84,7 @@ final class TournamentLifecycleTest extends ApplicationTestCase
         self::assertSame('single_elimination', $view->stages[0]->format);
         self::assertTrue($view->stages[0]->settings['third_place_match']);
         self::assertCount(2, $view->stages[0]->rounds);
-        self::assertSame(1, $this->transaction->calls);
+        self::assertSame(2, $this->transaction->calls, 'одна транзакция на добавление участников, одна на генерацию');
         self::assertCount(1, $this->events->of(TournamentStarted::class));
         self::assertCount(1, $this->events->of(StageGenerated::class));
     }

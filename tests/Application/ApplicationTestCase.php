@@ -83,18 +83,18 @@ abstract class ApplicationTestCase extends TestCase
         $this->finder = new TournamentFinder($this->tournaments, $this->stages);
 
         $this->createTournament = new CreateTournamentHandler($this->tournaments, $this->events, $this->clock);
-        $this->renameTournament = new RenameTournamentHandler($this->tournaments);
-        $this->changeScoringRules = new ChangeScoringRulesHandler($this->tournaments);
-        $this->addParticipants = new AddParticipantsHandler($this->tournaments, $this->events, $this->clock);
-        $this->updateParticipant = new UpdateParticipantHandler($this->tournaments);
-        $this->removeParticipant = new RemoveParticipantHandler($this->tournaments, $this->events, $this->clock);
-        $this->reorderParticipants = new ReorderParticipantsHandler($this->tournaments);
-        $this->shuffleParticipants = new ShuffleParticipantsHandler($this->tournaments, new Randomizer(new Mt19937(42)));
+        $this->renameTournament = new RenameTournamentHandler($this->tournaments, $this->transaction);
+        $this->changeScoringRules = new ChangeScoringRulesHandler($this->tournaments, $this->transaction);
+        $this->addParticipants = new AddParticipantsHandler($this->tournaments, $this->transaction, $this->events, $this->clock);
+        $this->updateParticipant = new UpdateParticipantHandler($this->tournaments, $this->transaction);
+        $this->removeParticipant = new RemoveParticipantHandler($this->tournaments, $this->transaction, $this->events, $this->clock);
+        $this->reorderParticipants = new ReorderParticipantsHandler($this->tournaments, $this->transaction);
+        $this->shuffleParticipants = new ShuffleParticipantsHandler($this->tournaments, $this->transaction, new Randomizer(new Mt19937(42)));
         $this->generateStage = new GenerateStageHandler($this->tournaments, $this->stages, $this->transaction, $this->events, $this->clock);
         $this->discardStage = new DiscardStageHandler($this->tournaments, $this->stages, $this->transaction, $this->events, $this->clock);
-        $this->recordFixtureResult = new RecordFixtureResultHandler($this->tournaments, $this->stages, $this->events, $this->clock);
-        $this->revertFixtureResult = new RevertFixtureResultHandler($this->stages, $this->events, $this->clock);
-        $this->finishTournament = new FinishTournamentHandler($this->tournaments, $this->events, $this->clock);
+        $this->recordFixtureResult = new RecordFixtureResultHandler($this->tournaments, $this->stages, $this->transaction, $this->events, $this->clock);
+        $this->revertFixtureResult = new RevertFixtureResultHandler($this->stages, $this->transaction, $this->events, $this->clock);
+        $this->finishTournament = new FinishTournamentHandler($this->tournaments, $this->transaction, $this->events, $this->clock);
     }
 
     protected function createdTournament(string $sport = 'table_tennis', string $name = 'Клубный кубок'): CreatedTournament
