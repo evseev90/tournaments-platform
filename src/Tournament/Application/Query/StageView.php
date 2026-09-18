@@ -9,6 +9,7 @@ final readonly class StageView
     /**
      * @param  array<string, mixed>  $settings
      * @param  list<RoundView>  $rounds
+     * @param  list<StandingView>|null  $standings  таблица, только для круговой
      */
     public function __construct(
         public string $id,
@@ -16,5 +17,6 @@ final readonly class StageView
         public array $settings,
         public string $status,
         public array $rounds,
+        public ?array $standings,
     ) {}
 }

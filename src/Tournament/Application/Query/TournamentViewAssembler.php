@@ -8,11 +8,17 @@ use DateTimeInterface;
 use Tournaments\Tournament\Domain\Stage\Fixture;
 use Tournaments\Tournament\Domain\Stage\FixtureSlot;
 use Tournaments\Tournament\Domain\Stage\Stage;
+use Tournaments\Tournament\Domain\Stage\StandingRow;
+use Tournaments\Tournament\Domain\Stage\StandingsCalculator;
 use Tournaments\Tournament\Domain\Tournament\Participant;
 use Tournaments\Tournament\Domain\Tournament\Tournament;
 
 final class TournamentViewAssembler
 {
+    public function __construct(
+        private readonly StandingsCalculator $standings = new StandingsCalculator,
+    ) {}
+
     /** @param list<Stage> $stages */
     public function assemble(Tournament $tournament, array $stages): TournamentView
     {
@@ -25,7 +31,7 @@ final class TournamentViewAssembler
             publicSlug: $tournament->publicSlug->value,
             createdAt: $tournament->createdAt->format(DateTimeInterface::ATOM),
             participants: array_map($this->participant(...), $tournament->participants()),
-            stages: array_map($this->stage(...), $stages),
+            stages: array_map(fn (Stage $stage) => $this->stage($stage, $tournament), $stages),
         );
     }
 
@@ -40,7 +46,7 @@ final class TournamentViewAssembler
         );
     }
 
-    private function stage(Stage $stage): StageView
+    private function stage(Stage $stage, Tournament $tournament): StageView
     {
         $rounds = [];
         for ($number = 1; $number <= $stage->roundsCount(); $number++) {
@@ -53,6 +59,26 @@ final class TournamentViewAssembler
             settings: $stage->settings->toArray(),
             status: $stage->status->value,
             rounds: $rounds,
+            standings: $stage->format->isElimination()
+                ? null
+                : array_map($this->standing(...), $this->standings->calculate($tournament->seededParticipantIds(), $stage->fixtures())),
+        );
+    }
+
+    private function standing(StandingRow $row): StandingView
+    {
+        return new StandingView(
+            participantId: $row->participantId->value,
+            rank: $row->rank,
+            played: $row->played,
+            wins: $row->wins,
+            draws: $row->draws,
+            losses: $row->losses,
+            setsWon: $row->setsWon,
+            setsLost: $row->setsLost,
+            pointsWon: $row->pointsWon,
+            pointsLost: $row->pointsLost,
+            score: $row->score(),
         );
     }
 

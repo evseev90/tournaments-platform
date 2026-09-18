@@ -49,7 +49,7 @@ src/            Доменный код по ограниченным конте
     Domain/         сущности, объекты-значения, события, интерфейсы репозиториев
     Application/    команды, обработчики, запросы
     Infrastructure/ репозитории, маппинг в базу
-resources/js/   Vue-страницы и компоненты
+resources/js/   Vue: pages, Components, Layouts, lib
 tests/          Domain, Application, Unit, Feature
 docker/         Dockerfile PHP и init-скрипты базы
 ```

@@ -34,6 +34,13 @@ docker compose exec node npm ...
 - Агрегаты: `Tournament` (участники, правила, доступ) и `Stage` (формат, матчи, продвижение). `Match` — сущность внутри `Stage`.
 - Форматы — доменные сервисы `FormatGenerator`: SingleElimination, RoundRobin, позже DoubleElimination, Swiss.
 
+## Интерфейс
+
+- Inertia + Vue 3, страницы в `resources/js/pages` (строчная буква: так их ищет Inertia), компоненты в `resources/js/Components`.
+- Ссылки: `/` создание, `/manage/{token}` организатор, `/t/{slug}` зрители. Токен превращает в турнир middleware `ResolveOrganizerTournament`.
+- Доменные исключения превращаются в ошибку формы `errors.domain` через `DomainErrorTranslator`, тексты на русском.
+- Скриншоты для проверки вёрстки: `docker run --rm --network host -v $OUT:/out zenika/alpine-chrome --headless --no-sandbox --screenshot=/out/x.png --window-size=1280,1000 URL`.
+
 ## Правила работы
 
 - Доменные тесты в `tests/Domain`, без базы. Application на in-memory репозиториях.
