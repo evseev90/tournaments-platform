@@ -1,8 +1,8 @@
 <script setup>
 import { Head, usePoll } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import PhaseList from '../../Components/PhaseList.vue';
 import ScheduleBoard from '../../Components/ScheduleBoard.vue';
-import StageView from '../../Components/StageView.vue';
 import TabSwitch from '../../Components/TabSwitch.vue';
 import StatusBadge from '../../Components/StatusBadge.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
@@ -38,7 +38,7 @@ usePoll(5000, { only: ['tournament', 'schedule'] });
             <TabSwitch v-if="schedule.planned" v-model="tab" :tabs="tabs" class="mb-4 sm:w-fit" />
 
             <div v-show="tab === 'bracket' || !schedule.planned" class="rounded-2xl border border-slate-200 bg-white p-5">
-                <StageView :tournament="tournament" :stage="stage" />
+                <PhaseList :tournament="tournament" />
             </div>
 
             <div v-show="tab === 'schedule' && schedule.planned" class="rounded-2xl border border-slate-200 bg-white p-5">

@@ -37,6 +37,8 @@ docker compose exec node npm ...
 - Результат матча — интерфейс `MatchOutcome`: `SetBasedOutcome` (партии) и `PointOutcome` (победа/ничья/поражение).
 - Агрегаты: `Tournament` (участники, правила, доступ) и `Stage` (формат, матчи, продвижение). `Match` — сущность внутри `Stage`.
 - Форматы — доменные сервисы `FormatGenerator`: SingleElimination, RoundRobin, позже DoubleElimination, Swiss.
+- Группы и плей-офф — это этапы (`Stage::$phase`), а не формат: групповой этап это несколько круговых стадий
+  с именами, плей-офф отдельная стадия второго этапа. Посев считают `GroupSplitter` и `PlayoffSeeder`.
 - Расписание: агрегат `Schedule` (площадки, параметры, назначения) и `GreedyPlanner`. Подробности в `docs/scheduling.md`.
 
 ## Интерфейс

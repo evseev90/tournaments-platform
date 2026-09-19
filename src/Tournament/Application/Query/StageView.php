@@ -13,6 +13,8 @@ final readonly class StageView
      */
     public function __construct(
         public string $id,
+        public ?string $name,
+        public int $phase,
         public string $format,
         public array $settings,
         public string $status,

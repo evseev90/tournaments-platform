@@ -10,6 +10,7 @@ use Tournaments\Shared\Application\TransactionManager;
 use Tournaments\Tournament\Application\Exception\NoStageGenerated;
 use Tournaments\Tournament\Application\Exception\StageHasResults;
 use Tournaments\Tournament\Domain\Stage\Fixture;
+use Tournaments\Tournament\Domain\Stage\Stage;
 use Tournaments\Tournament\Domain\Stage\StageRepository;
 use Tournaments\Tournament\Domain\Tournament\Tournament;
 use Tournaments\Tournament\Domain\Tournament\TournamentId;
@@ -34,14 +35,22 @@ final readonly class DiscardStageHandler
             if ($stages === []) {
                 throw new NoStageGenerated('The tournament has no stage to discard');
             }
-            foreach ($stages as $stage) {
+
+            $lastPhase = max(array_map(static fn (Stage $s) => $s->phase, $stages));
+            $doomed = array_values(array_filter($stages, static fn (Stage $s) => $s->phase === $lastPhase));
+
+            foreach ($doomed as $stage) {
                 if (array_any($stage->fixtures(), static fn (Fixture $f) => $f->isFinished())) {
                     throw new StageHasResults('Cannot discard a stage with recorded results; revert them first');
                 }
                 $this->stages->remove($stage);
             }
-            $tournament->reopen($this->clock->now());
-            $this->tournaments->save($tournament);
+
+            // Снятие первого этапа возвращает турнир в набор участников, снятие плей-офф оставляет группы.
+            if ($lastPhase === 1) {
+                $tournament->reopen($this->clock->now());
+                $this->tournaments->save($tournament);
+            }
 
             return $tournament;
         });

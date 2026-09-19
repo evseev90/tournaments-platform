@@ -20,13 +20,13 @@ final class RoundRobin implements FormatGenerator
 {
     public function minParticipants(): int
     {
-        return 3;
+        return 2;
     }
 
     public function generate(array $seeded, StageSettings $settings): array
     {
         if (count($seeded) < $this->minParticipants()) {
-            throw new NotEnoughParticipants('Round robin needs at least 3 participants');
+            throw new NotEnoughParticipants('Round robin needs at least 2 participants');
         }
 
         $firstLeg = $this->singleLeg($seeded);

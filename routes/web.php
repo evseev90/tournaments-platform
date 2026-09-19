@@ -28,6 +28,8 @@ Route::prefix('/manage/{token}')->middleware(ResolveOrganizerTournament::class)-
     Route::delete('/participants/{participant}', [ParticipantController::class, 'destroy'])->name('participants.destroy');
 
     Route::post('/stage', [StageController::class, 'store'])->name('stage.store');
+    Route::post('/groups', [StageController::class, 'storeGroups'])->name('groups.store');
+    Route::post('/playoff', [StageController::class, 'storePlayoff'])->name('playoff.store');
     Route::delete('/stage', [StageController::class, 'destroy'])->name('stage.destroy');
 
     Route::post('/stages/{stage}/fixtures/{fixture}/result', [ResultController::class, 'store'])->name('results.store');

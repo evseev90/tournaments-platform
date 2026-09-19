@@ -13,6 +13,7 @@ use Tournaments\Scheduling\Domain\Exception\ScheduleNotFound;
 use Tournaments\Scheduling\Domain\Exception\VenueBusy;
 use Tournaments\Scheduling\Domain\Exception\VenueNotFound;
 use Tournaments\Shared\Domain\DomainException;
+use Tournaments\Tournament\Application\Exception\GroupsNotFinished;
 use Tournaments\Tournament\Application\Exception\NoStageGenerated;
 use Tournaments\Tournament\Application\Exception\StageAlreadyGenerated;
 use Tournaments\Tournament\Application\Exception\StageHasResults;
@@ -39,7 +40,7 @@ final class DomainErrorTranslator
             CannotRevertResult::class => 'Результат нельзя отменить: следующий матч уже сыгран.',
             StageAlreadyGenerated::class => 'Сетка уже сгенерирована. Сначала отмените её.',
             StageHasResults::class => 'Нельзя отменить сетку, в которой уже есть результаты.',
-            NoStageGenerated::class => 'Сетка ещё не сгенерирована.',
+            NoStageGenerated::class, GroupsNotFinished::class => $exception->getMessage(),
             NoVenues::class => 'Добавьте хотя бы одну площадку.',
             VenueNotFound::class => 'Площадка не найдена.',
             VenueBusy::class => 'На этой площадке в это время уже идёт другой матч.',

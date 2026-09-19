@@ -10,6 +10,7 @@ const props = defineProps({
     tournament: { type: Object, required: true },
     stage: { type: Object, required: true },
     editable: Boolean,
+    dense: Boolean,
     resultUrl: { type: Function, default: () => '' },
 });
 
@@ -22,14 +23,14 @@ const done = computed(() => total.value.filter((f) => f.status === 'finished').l
 <template>
     <div class="space-y-6">
         <div class="flex flex-wrap items-center justify-between gap-2">
-            <h2 class="font-semibold">{{ formatLabels[stage.format] }}</h2>
+            <h2 class="font-semibold">{{ stage.name ?? formatLabels[stage.format] }}</h2>
             <span class="text-sm text-slate-500">Сыграно {{ done }} из {{ total.length }}</span>
         </div>
 
         <StandingsTable v-if="stage.standings" :standings="stage.standings" :names="names" />
 
         <Bracket v-if="stage.format === 'single_elimination'" :stage="stage" :names="names" :editable="editable" @open="opened = $event" />
-        <RoundsList v-else :stage="stage" :names="names" :editable="editable" @open="opened = $event" />
+        <RoundsList v-else :stage="stage" :names="names" :editable="editable" :dense="dense" @open="opened = $event" />
 
         <ScoreDialog v-if="editable" :fixture="opened" :names="names" :rules="tournament.rules" :result-url="resultUrl" @close="opened = null" />
     </div>

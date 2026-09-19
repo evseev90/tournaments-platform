@@ -2,13 +2,14 @@
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import CopyField from '../../Components/CopyField.vue';
+import PhaseList from '../../Components/PhaseList.vue';
+import PlayoffSetup from '../../Components/PlayoffSetup.vue';
 import ScheduleBoard from '../../Components/ScheduleBoard.vue';
 import SchedulePanel from '../../Components/SchedulePanel.vue';
 import TabSwitch from '../../Components/TabSwitch.vue';
 import ParticipantsEditor from '../../Components/ParticipantsEditor.vue';
 import RulesEditor from '../../Components/RulesEditor.vue';
 import StageSetup from '../../Components/StageSetup.vue';
-import StageView from '../../Components/StageView.vue';
 import StatusBadge from '../../Components/StatusBadge.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
 import { sportLabels } from '../../lib/labels';
@@ -20,11 +21,19 @@ const props = defineProps({
     urls: { type: Object, required: true },
 });
 
-const stage = computed(() => props.tournament.stages[0] ?? null);
+const stages = computed(() => props.tournament.stages);
+const stage = computed(() => stages.value[0] ?? null);
+const groups = computed(() => stages.value.filter((s) => s.phase === 1));
+const hasGroups = computed(() => groups.value.length > 1);
+const hasPlayoff = computed(() => stages.value.some((s) => s.phase > 1));
+const groupsFinished = computed(() => hasGroups.value && groups.value.every((s) => s.status === 'completed'));
+const lastPhase = computed(() => Math.max(...stages.value.map((s) => s.phase), 0));
 const isDraft = computed(() => props.tournament.status === 'draft');
 const isRunning = computed(() => props.tournament.status === 'in_progress');
-const hasResults = computed(() => stage.value?.rounds.some((r) => r.fixtures.some((f) => f.status === 'finished')) ?? false);
-const stageCompleted = computed(() => stage.value?.status === 'completed');
+const hasResults = computed(() => stages.value
+    .filter((s) => s.phase === lastPhase.value)
+    .some((s) => s.rounds.some((r) => r.fixtures.some((f) => f.status === 'finished'))));
+const stageCompleted = computed(() => stages.value.length > 0 && stages.value.every((s) => s.status === 'completed') && (!hasGroups.value || hasPlayoff.value));
 const defaultType = computed(() => props.sports.find((s) => s.value === props.tournament.sport)?.participant_type ?? 'player');
 
 const editingName = ref(false);
@@ -43,7 +52,10 @@ function saveRules() {
 }
 
 function discardStage() {
-    if (confirm('Отменить сетку? Турнир вернётся к набору участников.')) {
+    const message = lastPhase.value > 1
+        ? 'Отменить плей-офф? Групповой этап останется как есть.'
+        : 'Отменить сетку? Турнир вернётся к набору участников.';
+    if (confirm(message)) {
         router.delete(`${props.urls.manage}/stage`);
     }
 }
@@ -52,12 +64,12 @@ function finish() {
         router.post(`${props.urls.manage}/finish`);
     }
 }
-const resultUrl = (fixture) => `${props.urls.manage}/stages/${stage.value.id}/fixtures/${fixture.id}/result`;
+const resultUrl = (target, fixture) => `${props.urls.manage}/stages/${target.id}/fixtures/${fixture.id}/result`;
 
 const tab = ref('bracket');
 const tabs = [{ value: 'bracket', label: 'Сетка' }, { value: 'schedule', label: 'Расписание' }];
 const playableMatches = computed(
-    () => stage.value?.rounds.flatMap((r) => r.fixtures).filter((f) => f.status !== 'bye').length ?? 0,
+    () => stages.value.flatMap((s) => s.rounds).flatMap((r) => r.fixtures).filter((f) => f.status !== 'bye').length,
 );
 </script>
 
@@ -82,7 +94,9 @@ const playableMatches = computed(
                 </h1>
             </div>
             <div v-if="isRunning" class="flex gap-2">
-                <button v-if="!hasResults" type="button" class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50" @click="discardStage">Отменить сетку</button>
+                <button v-if="!hasResults" type="button" class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50" @click="discardStage">
+                    {{ lastPhase > 1 ? 'Отменить плей-офф' : 'Отменить сетку' }}
+                </button>
                 <button v-if="stageCompleted" type="button" class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700" @click="finish">Завершить турнир</button>
             </div>
         </div>
@@ -112,9 +126,13 @@ const playableMatches = computed(
         <template v-else-if="stage">
             <TabSwitch v-model="tab" :tabs="tabs" class="mb-4 sm:w-fit" />
 
-            <div v-show="tab === 'bracket'" class="rounded-2xl border border-slate-200 bg-white p-5">
-                <StageView :tournament="tournament" :stage="stage" :editable="isRunning" :result-url="resultUrl" />
-                <p v-if="isRunning" class="mt-4 text-xs text-slate-400">Нажмите на матч, чтобы ввести счёт. Уже введённый счёт можно поправить, пока не сыгран следующий матч.</p>
+            <div v-show="tab === 'bracket'" class="space-y-6">
+                <PlayoffSetup v-if="groupsFinished && !hasPlayoff && isRunning" :groups="groups" :base-url="urls.manage" />
+
+                <div class="rounded-2xl border border-slate-200 bg-white p-5">
+                    <PhaseList :tournament="tournament" :editable="isRunning" :result-url="resultUrl" />
+                    <p v-if="isRunning" class="mt-4 text-xs text-slate-400">Нажмите на матч, чтобы ввести счёт. Уже введённый счёт можно поправить, пока не сыгран следующий матч.</p>
+                </div>
             </div>
 
             <div v-show="tab === 'schedule'" class="grid gap-6 lg:grid-cols-[1fr_minmax(0,22rem)]">

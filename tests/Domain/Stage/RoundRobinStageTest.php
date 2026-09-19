@@ -32,6 +32,7 @@ final class RoundRobinStageTest extends TestCase
     /** @return iterable<string, array{int, int, int, int}> */
     public static function sizes(): iterable
     {
+        yield '2 participants' => [2, 1, 1, 1];
         yield '3 participants' => [3, 3, 3, 1];
         yield '4 participants' => [4, 6, 3, 2];
         yield '5 participants' => [5, 10, 5, 2];
@@ -97,11 +98,20 @@ final class RoundRobinStageTest extends TestCase
     }
 
     #[Test]
-    public function needs_at_least_three_participants(): void
+    public function two_participants_play_a_single_match(): void
+    {
+        [$stage] = $this->stage(2);
+
+        self::assertCount(1, $stage->fixtures());
+        self::assertSame(1, $stage->roundsCount());
+    }
+
+    #[Test]
+    public function needs_at_least_two_participants(): void
     {
         $this->expectException(NotEnoughParticipants::class);
 
-        $this->stage(2);
+        $this->stage(1);
     }
 
     #[Test]

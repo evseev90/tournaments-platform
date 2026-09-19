@@ -44,6 +44,8 @@ final readonly class PostgresStageRepository implements StageRepository
     {
         return array_values($this->stages()
             ->where('tournament_id', $tournamentId->value)
+            ->orderBy('phase')
+            ->orderBy('name')
             ->orderBy('created_at')
             ->get()
             ->map(fn (stdClass $row) => $this->hydrate($row))
@@ -57,6 +59,8 @@ final readonly class PostgresStageRepository implements StageRepository
         $this->stages()->upsert([[
             'id' => $stage->id->value,
             'tournament_id' => $stage->tournamentId->value,
+            'name' => $stage->name,
+            'phase' => $stage->phase,
             'format' => $stage->format->value,
             'settings' => json_encode($stage->settings->toArray(), JSON_THROW_ON_ERROR),
             'status' => $stage->status->value,
@@ -116,6 +120,8 @@ final readonly class PostgresStageRepository implements StageRepository
             settings: StageSettings::fromArray(Json::map($row->settings)),
             status: StageStatus::from($row->status),
             fixtures: $fixtures,
+            name: $row->name,
+            phase: (int) $row->phase,
         );
     }
 

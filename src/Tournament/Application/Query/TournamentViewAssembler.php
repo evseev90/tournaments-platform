@@ -55,13 +55,15 @@ final class TournamentViewAssembler
 
         return new StageView(
             id: $stage->id->value,
+            name: $stage->name,
+            phase: $stage->phase,
             format: $stage->format->value,
             settings: $stage->settings->toArray(),
             status: $stage->status->value,
             rounds: $rounds,
             standings: $stage->format->isElimination()
                 ? null
-                : array_map($this->standing(...), $this->standings->calculate($tournament->seededParticipantIds(), $stage->fixtures())),
+                : array_map($this->standing(...), $this->standings->calculate($stage->participants(), $stage->fixtures())),
         );
     }
 

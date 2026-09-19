@@ -29,13 +29,12 @@ final readonly class TournamentPlannableMatches implements PlannableMatches
     {
         $stages = $this->stages->ofTournament(TournamentId::fromString($tournament->value));
 
+        // Этап задаёт порядок, туры внутри этапа идут следом: группы одной фазы планируются параллельно.
         $matches = [];
-        $stageOffset = 0;
         foreach ($stages as $stage) {
-            foreach ($this->ofStage($stage, $stageOffset) as $match) {
+            foreach ($this->ofStage($stage, ($stage->phase - 1) * 100) as $match) {
                 $matches[] = $match;
             }
-            $stageOffset += $stage->roundsCount();
         }
 
         return $matches;

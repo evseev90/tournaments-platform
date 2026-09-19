@@ -22,6 +22,9 @@ use Tournaments\Tournament\Domain\Tournament\TournamentId;
 /**
  * Агрегат «Стадия»: формат и граф матчей. Результат матча продвигает участников
  * по ссылкам nextWin / nextLose внутри этого же агрегата, поэтому сетка всегда согласована.
+ *
+ * Этап турнира (`phase`) может состоять из нескольких стадий: групповой этап — это
+ * несколько круговых стадий с одним номером этапа и разными именами. Плей-офф идёт следующим этапом.
  */
 final class Stage
 {
@@ -37,6 +40,8 @@ final class Stage
         public readonly StageFormat $format,
         public readonly StageSettings $settings,
         public private(set) StageStatus $status,
+        public readonly ?string $name,
+        public readonly int $phase,
         array $fixtures,
     ) {
         foreach ($fixtures as $fixture) {
@@ -52,9 +57,11 @@ final class Stage
         StageSettings $settings,
         array $seeded,
         DateTimeImmutable $now,
+        ?string $name = null,
+        int $phase = 1,
     ): self {
         $fixtures = $format->generator()->generate($seeded, $settings);
-        $stage = new self($id, $tournamentId, $format, $settings, StageStatus::InProgress, $fixtures);
+        $stage = new self($id, $tournamentId, $format, $settings, StageStatus::InProgress, $name, $phase, $fixtures);
         $stage->recordEvent(new StageGenerated($tournamentId, $id, $now));
 
         return $stage;
@@ -68,8 +75,10 @@ final class Stage
         StageSettings $settings,
         StageStatus $status,
         array $fixtures,
+        ?string $name = null,
+        int $phase = 1,
     ): self {
-        return new self($id, $tournamentId, $format, $settings, $status, $fixtures);
+        return new self($id, $tournamentId, $format, $settings, $status, $name, $phase, $fixtures);
     }
 
     /**
@@ -123,6 +132,26 @@ final class Stage
         $fixture->reopen();
         $this->status = StageStatus::InProgress;
         $this->recordEvent(new FixtureResultReverted($this->tournamentId, $this->id, $fixtureId, $now));
+    }
+
+    /**
+     * Участники стадии в порядке появления в матчах первого раунда.
+     * Для круговой это и есть состав группы.
+     *
+     * @return list<ParticipantId>
+     */
+    public function participants(): array
+    {
+        $seen = [];
+        foreach ($this->fixtures() as $fixture) {
+            foreach ([$fixture->home(), $fixture->away()] as $participant) {
+                if ($participant !== null) {
+                    $seen[$participant->value] = $participant;
+                }
+            }
+        }
+
+        return array_values($seen);
     }
 
     public function fixture(FixtureId $id): Fixture
