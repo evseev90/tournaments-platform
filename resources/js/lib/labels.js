@@ -33,6 +33,14 @@ export function roundLabel(stage, round) {
     return `1/${2 ** (fromEnd + 1)} финала`;
 }
 
+/** Подпись конкретного матча: в последнем раунде рядом с финалом живёт матч за третье место. */
+export function fixtureLabel(stage, round, fixture) {
+    if (stage.format === 'single_elimination' && round === stage.rounds.length && fixture.position === 1) {
+        return 'Матч за 3 место';
+    }
+    return roundLabel(stage, round);
+}
+
 export function pluralize(n, one, few, many) {
     const mod10 = n % 10;
     const mod100 = n % 100;

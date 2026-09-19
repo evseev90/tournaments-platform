@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Tournaments\Scheduling\Application\Query\ScheduleFinder;
 use Tournaments\Tournament\Application\Command\ChangeScoringRules;
 use Tournaments\Tournament\Application\Command\ChangeScoringRulesHandler;
 use Tournaments\Tournament\Application\Command\FinishTournament;
@@ -18,13 +19,14 @@ use Tournaments\Tournament\Application\Command\RenameTournamentHandler;
 
 final class ManageController extends Controller
 {
-    public function show(Request $request): Response
+    public function show(Request $request, ScheduleFinder $schedules): Response
     {
         $tournament = $this->organizerTournament($request);
         $token = $request->route('token');
 
         return Inertia::render('Manage/Show', [
             'tournament' => $tournament,
+            'schedule' => $schedules->ofTournament($tournament->id),
             'sports' => SportPresets::all(),
             'urls' => [
                 'manage' => route('manage.show', ['token' => $token]),

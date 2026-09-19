@@ -5,6 +5,7 @@ use App\Http\Controllers\ManageController;
 use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\ResultController;
+use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\StageController;
 use App\Http\Middleware\ResolveOrganizerTournament;
 use Illuminate\Support\Facades\Route;
@@ -31,4 +32,12 @@ Route::prefix('/manage/{token}')->middleware(ResolveOrganizerTournament::class)-
 
     Route::post('/stages/{stage}/fixtures/{fixture}/result', [ResultController::class, 'store'])->name('results.store');
     Route::delete('/stages/{stage}/fixtures/{fixture}/result', [ResultController::class, 'destroy'])->name('results.destroy');
+
+    Route::post('/venues', [ScheduleController::class, 'storeVenue'])->name('venues.store');
+    Route::patch('/venues/{venue}', [ScheduleController::class, 'updateVenue'])->name('venues.update');
+    Route::delete('/venues/{venue}', [ScheduleController::class, 'destroyVenue'])->name('venues.destroy');
+    Route::patch('/schedule', [ScheduleController::class, 'settings'])->name('schedule.settings');
+    Route::post('/schedule', [ScheduleController::class, 'plan'])->name('schedule.plan');
+    Route::delete('/schedule', [ScheduleController::class, 'clear'])->name('schedule.clear');
+    Route::patch('/schedule/matches/{match}', [ScheduleController::class, 'move'])->name('schedule.move');
 });

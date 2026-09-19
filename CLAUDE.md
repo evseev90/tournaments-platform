@@ -25,7 +25,11 @@ docker compose exec node npm ...
 - Чтение для страниц: `TournamentFinder` собирает DTO из агрегатов. Отдельные SQL-модели чтения появятся для списков и статистики.
 - Обработчики команд работают внутри `TransactionManager`, репозитории берут строку агрегата через `lockForUpdate`. События публикуются после коммита.
 
-Контексты: `Tournament` (ядро, делаем сейчас), позже `Scheduling`, `Statistics`, `Identity`.
+Контексты: `Tournament` (ядро) и `Scheduling` (площадки и время). Позже `Statistics`, `Identity`.
+
+Между контекстами нет прямых ссылок и внешних ключей. `Scheduling` объявляет порт `PlannableMatches`,
+его реализация в `src/Scheduling/Infrastructure/Tournament` переводит матчи стадий на язык расписания.
+Обратная связь идёт событиями: слушатель `KeepScheduleInSync` в `app/Listeners`.
 
 ## Домен
 
@@ -33,6 +37,7 @@ docker compose exec node npm ...
 - Результат матча — интерфейс `MatchOutcome`: `SetBasedOutcome` (партии) и `PointOutcome` (победа/ничья/поражение).
 - Агрегаты: `Tournament` (участники, правила, доступ) и `Stage` (формат, матчи, продвижение). `Match` — сущность внутри `Stage`.
 - Форматы — доменные сервисы `FormatGenerator`: SingleElimination, RoundRobin, позже DoubleElimination, Swiss.
+- Расписание: агрегат `Schedule` (площадки, параметры, назначения) и `GreedyPlanner`. Подробности в `docs/scheduling.md`.
 
 ## Интерфейс
 

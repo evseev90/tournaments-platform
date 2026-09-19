@@ -2,6 +2,9 @@
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import CopyField from '../../Components/CopyField.vue';
+import ScheduleBoard from '../../Components/ScheduleBoard.vue';
+import SchedulePanel from '../../Components/SchedulePanel.vue';
+import TabSwitch from '../../Components/TabSwitch.vue';
 import ParticipantsEditor from '../../Components/ParticipantsEditor.vue';
 import RulesEditor from '../../Components/RulesEditor.vue';
 import StageSetup from '../../Components/StageSetup.vue';
@@ -12,6 +15,7 @@ import { sportLabels } from '../../lib/labels';
 
 const props = defineProps({
     tournament: { type: Object, required: true },
+    schedule: { type: Object, required: true },
     sports: { type: Array, required: true },
     urls: { type: Object, required: true },
 });
@@ -49,6 +53,12 @@ function finish() {
     }
 }
 const resultUrl = (fixture) => `${props.urls.manage}/stages/${stage.value.id}/fixtures/${fixture.id}/result`;
+
+const tab = ref('bracket');
+const tabs = [{ value: 'bracket', label: 'Сетка' }, { value: 'schedule', label: 'Расписание' }];
+const playableMatches = computed(
+    () => stage.value?.rounds.flatMap((r) => r.fixtures).filter((f) => f.status !== 'bye').length ?? 0,
+);
 </script>
 
 <template>
@@ -99,9 +109,21 @@ const resultUrl = (fixture) => `${props.urls.manage}/stages/${stage.value.id}/fi
             </div>
         </div>
 
-        <div v-else-if="stage" class="rounded-2xl border border-slate-200 bg-white p-5">
-            <StageView :tournament="tournament" :stage="stage" :editable="isRunning" :result-url="resultUrl" />
-            <p v-if="isRunning" class="mt-4 text-xs text-slate-400">Нажмите на матч, чтобы ввести счёт. Уже введённый счёт можно поправить, пока не сыгран следующий матч.</p>
-        </div>
+        <template v-else-if="stage">
+            <TabSwitch v-model="tab" :tabs="tabs" class="mb-4 sm:w-fit" />
+
+            <div v-show="tab === 'bracket'" class="rounded-2xl border border-slate-200 bg-white p-5">
+                <StageView :tournament="tournament" :stage="stage" :editable="isRunning" :result-url="resultUrl" />
+                <p v-if="isRunning" class="mt-4 text-xs text-slate-400">Нажмите на матч, чтобы ввести счёт. Уже введённый счёт можно поправить, пока не сыгран следующий матч.</p>
+            </div>
+
+            <div v-show="tab === 'schedule'" class="grid gap-6 lg:grid-cols-[1fr_minmax(0,22rem)]">
+                <div class="rounded-2xl border border-slate-200 bg-white p-5">
+                    <ScheduleBoard :tournament="tournament" :schedule="schedule" :editable="isRunning" :base-url="urls.manage" />
+                    <p v-if="schedule.planned && isRunning" class="mt-4 text-xs text-slate-400">Нажмите на матч, чтобы перенести его на другое время или площадку.</p>
+                </div>
+                <SchedulePanel :schedule="schedule" :base-url="urls.manage" :matches-count="playableMatches" />
+            </div>
+        </template>
     </AppLayout>
 </template>

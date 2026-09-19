@@ -42,16 +42,18 @@ make npm cmd="install some-package"
 ## Структура
 
 ```
-app/            Laravel: контроллеры, middleware, провайдеры
+app/            Laravel: контроллеры, middleware, слушатели, провайдеры
 src/            Доменный код по ограниченным контекстам
   Shared/         базовые типы, общие для контекстов
-  Tournament/     контекст «Турнир»
+  Tournament/     контекст «Турнир»: участники, сетки, счёт
     Domain/         сущности, объекты-значения, события, интерфейсы репозиториев
     Application/    команды, обработчики, запросы
     Infrastructure/ репозитории, маппинг в базу
+  Scheduling/     контекст «Расписание»: площадки, время, раскладка
 resources/js/   Vue: pages, Components, Layouts, lib
 tests/          Domain, Application, Unit, Feature
 docker/         Dockerfile PHP и init-скрипты базы
 ```
 
-Подробнее об архитектуре и терминах — в `docs/`.
+Подробнее об архитектуре и терминах: [docs/domain.md](docs/domain.md) про турниры,
+[docs/scheduling.md](docs/scheduling.md) про расписание.

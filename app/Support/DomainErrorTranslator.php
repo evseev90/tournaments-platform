@@ -4,6 +4,14 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use Tournaments\Scheduling\Domain\Exception\CompetitorBusy;
+use Tournaments\Scheduling\Domain\Exception\InvalidVenueName;
+use Tournaments\Scheduling\Domain\Exception\MatchNotScheduled;
+use Tournaments\Scheduling\Domain\Exception\NothingToPlan;
+use Tournaments\Scheduling\Domain\Exception\NoVenues;
+use Tournaments\Scheduling\Domain\Exception\ScheduleNotFound;
+use Tournaments\Scheduling\Domain\Exception\VenueBusy;
+use Tournaments\Scheduling\Domain\Exception\VenueNotFound;
 use Tournaments\Shared\Domain\DomainException;
 use Tournaments\Tournament\Application\Exception\NoStageGenerated;
 use Tournaments\Tournament\Application\Exception\StageAlreadyGenerated;
@@ -32,6 +40,13 @@ final class DomainErrorTranslator
             StageAlreadyGenerated::class => 'Сетка уже сгенерирована. Сначала отмените её.',
             StageHasResults::class => 'Нельзя отменить сетку, в которой уже есть результаты.',
             NoStageGenerated::class => 'Сетка ещё не сгенерирована.',
+            NoVenues::class => 'Добавьте хотя бы одну площадку.',
+            VenueNotFound::class => 'Площадка не найдена.',
+            VenueBusy::class => 'На этой площадке в это время уже идёт другой матч.',
+            CompetitorBusy::class => 'Участник в это время уже играет другой матч.',
+            MatchNotScheduled::class => 'Этого матча нет в расписании.',
+            InvalidVenueName::class => 'Название площадки не может быть пустым и длиннее 60 символов.',
+            ScheduleNotFound::class, NothingToPlan::class => $exception->getMessage(),
             default => 'Действие невозможно: '.$exception->getMessage(),
         };
     }

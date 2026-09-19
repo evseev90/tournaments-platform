@@ -1,20 +1,26 @@
 <script setup>
 import { Head, usePoll } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import ScheduleBoard from '../../Components/ScheduleBoard.vue';
 import StageView from '../../Components/StageView.vue';
+import TabSwitch from '../../Components/TabSwitch.vue';
 import StatusBadge from '../../Components/StatusBadge.vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
 import { participantTypeLabels, sportLabels } from '../../lib/labels';
 
 const props = defineProps({
     tournament: { type: Object, required: true },
+    schedule: { type: Object, required: true },
     urls: { type: Object, required: true },
 });
 
 const stage = computed(() => props.tournament.stages[0] ?? null);
 const typeLabel = computed(() => participantTypeLabels[props.tournament.participants[0]?.type] ?? 'Участники');
 
-usePoll(5000, { only: ['tournament'] });
+const tab = ref('bracket');
+const tabs = [{ value: 'bracket', label: 'Сетка' }, { value: 'schedule', label: 'Расписание' }];
+
+usePoll(5000, { only: ['tournament', 'schedule'] });
 </script>
 
 <template>
@@ -28,9 +34,17 @@ usePoll(5000, { only: ['tournament'] });
             <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">{{ tournament.name }}</h1>
         </div>
 
-        <div v-if="stage" class="rounded-2xl border border-slate-200 bg-white p-5">
-            <StageView :tournament="tournament" :stage="stage" />
-        </div>
+        <template v-if="stage">
+            <TabSwitch v-if="schedule.planned" v-model="tab" :tabs="tabs" class="mb-4 sm:w-fit" />
+
+            <div v-show="tab === 'bracket' || !schedule.planned" class="rounded-2xl border border-slate-200 bg-white p-5">
+                <StageView :tournament="tournament" :stage="stage" />
+            </div>
+
+            <div v-show="tab === 'schedule' && schedule.planned" class="rounded-2xl border border-slate-200 bg-white p-5">
+                <ScheduleBoard :tournament="tournament" :schedule="schedule" />
+            </div>
+        </template>
 
         <section v-else class="rounded-2xl border border-slate-200 bg-white p-5">
             <h2 class="mb-3 font-semibold">{{ typeLabel }} <span class="text-sm font-normal text-slate-400">{{ tournament.participants.length }}</span></h2>
