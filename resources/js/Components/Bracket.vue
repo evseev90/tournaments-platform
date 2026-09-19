@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { roundLabel } from '../lib/labels';
+import { CARD_HEIGHT, CARD_WIDTH, THIRD_PLACE_GAP, layoutBracket } from '../lib/bracketLayout';
 import FixtureCard from './FixtureCard.vue';
 
 const props = defineProps({
@@ -10,28 +11,54 @@ const props = defineProps({
 });
 const emit = defineEmits(['open']);
 
-const lastRound = computed(() => props.stage.rounds.length);
-const thirdPlace = computed(() => props.stage.rounds[lastRound.value - 1]?.fixtures.find((f) => f.position === 1) ?? null);
-
-function fixturesOf(round) {
-    return round.number === lastRound.value ? round.fixtures.filter((f) => f.position === 0) : round.fixtures;
-}
+const layout = computed(() => layoutBracket(props.stage));
 </script>
 
 <template>
     <div class="overflow-x-auto pb-2">
-        <div class="flex min-w-max gap-6">
-            <div v-for="round in stage.rounds" :key="round.number" class="flex w-56 flex-col">
-                <h3 class="mb-3 text-xs font-medium uppercase tracking-wide text-slate-500">{{ roundLabel(stage, round.number) }}</h3>
-                <div class="flex flex-1 flex-col justify-around gap-3">
-                    <FixtureCard v-for="f in fixturesOf(round)" :key="f.id" :fixture="f" :names="names" :editable="editable" @open="emit('open', $event)" />
-                </div>
+        <div class="min-w-max">
+            <div class="relative mb-3 h-4" :style="{ width: `${layout.width}px` }">
+                <h3
+                    v-for="column in layout.columns" :key="column.round"
+                    class="absolute top-0 text-xs font-medium uppercase tracking-wide text-slate-500"
+                    :style="{ left: `${column.x}px`, width: `${CARD_WIDTH}px` }"
+                >
+                    {{ roundLabel(stage, column.round) }}
+                </h3>
             </div>
-        </div>
 
-        <div v-if="thirdPlace" class="mt-6 w-56">
-            <h3 class="mb-3 text-xs font-medium uppercase tracking-wide text-slate-500">Матч за 3 место</h3>
-            <FixtureCard :fixture="thirdPlace" :names="names" :editable="editable" @open="emit('open', $event)" />
+            <div class="relative" :style="{ width: `${layout.width}px`, height: `${layout.height}px` }">
+                <svg class="pointer-events-none absolute inset-0" :width="layout.width" :height="layout.height" aria-hidden="true">
+                    <path
+                        v-for="(edge, index) in layout.edges" :key="index"
+                        :d="edge.path" fill="none" stroke-width="1.5" stroke-linecap="round"
+                        :class="edge.active ? 'stroke-emerald-400' : 'stroke-slate-200'"
+                    />
+                </svg>
+
+                <div
+                    v-for="item in layout.fixtures" :key="item.fixture.id"
+                    class="absolute"
+                    :style="{ left: `${item.x}px`, top: `${item.y}px`, width: `${CARD_WIDTH}px`, height: `${CARD_HEIGHT}px` }"
+                >
+                    <FixtureCard :fixture="item.fixture" :names="names" :editable="editable" in-bracket @open="emit('open', $event)" />
+                </div>
+
+                <template v-if="layout.thirdPlace">
+                    <h3
+                        class="absolute text-xs font-medium uppercase tracking-wide text-slate-500"
+                        :style="{ left: `${layout.thirdPlace.x}px`, top: `${layout.thirdPlace.y - THIRD_PLACE_GAP + 22}px`, width: `${CARD_WIDTH}px` }"
+                    >
+                        Матч за 3 место
+                    </h3>
+                    <div
+                        class="absolute"
+                        :style="{ left: `${layout.thirdPlace.x}px`, top: `${layout.thirdPlace.y}px`, width: `${CARD_WIDTH}px`, height: `${CARD_HEIGHT}px` }"
+                    >
+                        <FixtureCard :fixture="layout.thirdPlace.fixture" :names="names" :editable="editable" in-bracket @open="emit('open', $event)" />
+                    </div>
+                </template>
+            </div>
         </div>
     </div>
 </template>

@@ -6,7 +6,8 @@ const props = defineProps({
     fixture: { type: Object, required: true },
     names: { type: Object, required: true },
     editable: Boolean,
-    compact: Boolean,
+    /** В сетке карточки одной высоты, иначе линии не сойдутся: счёт по партиям уходит в подпись под карточкой. */
+    inBracket: Boolean,
 });
 const emit = defineEmits(['open']);
 
@@ -32,7 +33,7 @@ const setScores = computed(() => props.fixture.outcome?.type === 'sets' ? props.
 <template>
     <component
         :is="clickable ? 'button' : 'div'" :type="clickable ? 'button' : undefined"
-        class="w-full rounded-xl border bg-white text-left shadow-sm transition"
+        class="relative w-full rounded-xl border bg-white text-left shadow-sm transition"
         :class="[
             fixture.status === 'bye' ? 'border-dashed border-slate-200 opacity-70' : 'border-slate-200',
             clickable ? 'cursor-pointer hover:border-emerald-400 hover:shadow' : '',
@@ -50,7 +51,11 @@ const setScores = computed(() => props.fixture.outcome?.type === 'sets' ? props.
             </span>
             <span v-else-if="fixture.status === 'bye' && row.name" class="text-[10px] uppercase text-slate-400">проход</span>
         </div>
-        <div v-if="setScores.length && !compact" class="border-t border-slate-100 px-3 py-1 text-[11px] tabular-nums text-slate-400">
+        <div
+            v-if="setScores.length"
+            class="px-3 text-[11px] tabular-nums text-slate-400"
+            :class="inBracket ? 'absolute inset-x-0 top-full truncate pt-1' : 'border-t border-slate-100 py-1'"
+        >
             {{ setScores.map(([h, a]) => `${h}:${a}`).join(' · ') }}
         </div>
     </component>
