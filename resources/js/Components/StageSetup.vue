@@ -16,6 +16,7 @@ const form = useForm({
 
 const formats = [
     { value: 'single_elimination', label: 'Олимпийская', description: 'Проиграл — выбыл. Быстро, подходит для любого числа участников.', min: 2 },
+    { value: 'double_elimination', label: 'Двойная сетка', description: 'Вылет после второго поражения. Одна осечка не выбивает из турнира.', min: 3 },
     { value: 'round_robin', label: 'Круговая', description: 'Каждый с каждым, итоговая таблица. Дольше, зато честнее.', min: 2 },
     { value: 'groups', label: 'Группы и плей-офф', description: 'Сначала круговая в группах, потом сетка на выбывание.', min: 4 },
 ];
@@ -38,6 +39,7 @@ const enough = computed(() => props.participantsCount >= selected.value.min && (
 
 const matches = computed(() => {
     const n = props.participantsCount;
+    if (form.format === 'double_elimination') return 2 * n - 2;
     if (form.format === 'round_robin') return (n * (n - 1) / 2) * form.settings.legs;
     if (isGroups.value) {
         const base = Math.floor(n / form.groups);
@@ -80,6 +82,10 @@ function generate() {
                 <input v-model="form.settings.third_place_match" type="checkbox" class="rounded border-slate-300 text-emerald-600" />
                 Матч за третье место
             </label>
+
+            <p v-else-if="form.format === 'double_elimination'" class="text-xs text-slate-400">
+                Победитель нижней сетки играет один матч гранд-финала: переигровки при его победе не будет.
+            </p>
 
             <template v-else>
                 <label v-if="isGroups" class="flex flex-wrap items-center gap-2 text-sm">

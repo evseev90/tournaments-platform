@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { formatLabels } from '../lib/labels';
 import Bracket from './Bracket.vue';
+import DoubleBracket from './DoubleBracket.vue';
 import RoundsList from './RoundsList.vue';
 import ScoreDialog from './ScoreDialog.vue';
 import StandingsTable from './StandingsTable.vue';
@@ -29,7 +30,8 @@ const done = computed(() => total.value.filter((f) => f.status === 'finished').l
 
         <StandingsTable v-if="stage.standings" :standings="stage.standings" :names="names" />
 
-        <Bracket v-if="stage.format === 'single_elimination'" :stage="stage" :names="names" :editable="editable" @open="opened = $event" />
+        <DoubleBracket v-if="stage.format === 'double_elimination'" :stage="stage" :names="names" :editable="editable" @open="opened = $event" />
+        <Bracket v-else-if="stage.format === 'single_elimination'" :stage="stage" :names="names" :editable="editable" @open="opened = $event" />
         <RoundsList v-else :stage="stage" :names="names" :editable="editable" :dense="dense" @open="opened = $event" />
 
         <ScoreDialog v-if="editable" :fixture="opened" :names="names" :rules="tournament.rules" :result-url="resultUrl" @close="opened = null" />

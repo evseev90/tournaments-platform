@@ -24,6 +24,7 @@ final class Fixture
         private bool $bye = false,
         public readonly ?FixtureSlot $nextWin = null,
         public readonly ?FixtureSlot $nextLose = null,
+        public readonly ?BracketSide $bracket = null,
     ) {}
 
     public function participant(Side $side): ?ParticipantId

@@ -90,6 +90,7 @@ final class TournamentViewAssembler
             id: $fixture->id->value,
             round: $fixture->round,
             position: $fixture->position,
+            bracket: $fixture->bracket?->value,
             homeId: $fixture->home()?->value,
             awayId: $fixture->away()?->value,
             status: $fixture->status()->value,

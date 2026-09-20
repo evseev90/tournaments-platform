@@ -32,6 +32,20 @@ export function layoutBracket(stage) {
         fixtures: round.number === lastRound ? round.fixtures.filter((f) => f.position === 0) : round.fixtures,
     }));
 
+    const thirdPlaceFixture = stage.rounds.at(-1)?.fixtures.find((f) => f.position === 1) ?? null;
+
+    return layoutRounds(playoff, thirdPlaceFixture);
+}
+
+/**
+ * Раскладка произвольного набора раундов. Ветка двойной сетки раскладывается тем же кодом:
+ * связи внутри неё считаются по nextWin, а входы из соседней ветки просто не находятся.
+ *
+ * @param {Array<{number: number, fixtures: Array<object>}>} playoff
+ * @param {object|null} thirdPlaceFixture
+ */
+export function layoutRounds(playoff, thirdPlaceFixture = null) {
+
     const parentsOf = new Map();
     for (const round of playoff) {
         for (const fixture of round.fixtures) {
@@ -76,7 +90,6 @@ export function layoutBracket(stage) {
 
     // Матч за третье место в сетку не входит: ставим его отдельной карточкой под финалом.
     const finalPosition = placed.at(-1);
-    const thirdPlaceFixture = stage.rounds.at(-1)?.fixtures.find((f) => f.position === 1) ?? null;
     const thirdPlace = thirdPlaceFixture && finalPosition
         ? {
             fixture: thirdPlaceFixture,

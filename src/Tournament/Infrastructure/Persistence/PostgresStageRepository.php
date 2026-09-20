@@ -11,6 +11,7 @@ use stdClass;
 use Tournaments\Tournament\Domain\Exception\StageNotFound;
 use Tournaments\Tournament\Domain\Scoring\ScoringRulesFactory;
 use Tournaments\Tournament\Domain\Scoring\Side;
+use Tournaments\Tournament\Domain\Stage\BracketSide;
 use Tournaments\Tournament\Domain\Stage\Fixture;
 use Tournaments\Tournament\Domain\Stage\FixtureId;
 use Tournaments\Tournament\Domain\Stage\FixtureSlot;
@@ -73,6 +74,7 @@ final readonly class PostgresStageRepository implements StageRepository
             'stage_id' => $stage->id->value,
             'round' => $f->round,
             'position' => $f->position,
+            'bracket' => $f->bracket?->value,
             'home_id' => $f->home()?->value,
             'away_id' => $f->away()?->value,
             'outcome' => $f->outcome() === null ? null : json_encode($f->outcome()->toArray(), JSON_THROW_ON_ERROR),
@@ -108,6 +110,7 @@ final readonly class PostgresStageRepository implements StageRepository
                 away: $f->away_id === null ? null : ParticipantId::fromString($f->away_id),
                 outcome: $f->outcome === null ? null : ScoringRulesFactory::outcomeFromArray(Json::map($f->outcome)),
                 bye: (bool) $f->bye,
+                bracket: $f->bracket === null ? null : BracketSide::from($f->bracket),
                 nextWin: self::slot($f->next_win_fixture_id, $f->next_win_side),
                 nextLose: self::slot($f->next_lose_fixture_id, $f->next_lose_side),
             ))

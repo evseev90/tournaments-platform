@@ -15,6 +15,7 @@ final readonly class FixtureView
         public string $id,
         public int $round,
         public int $position,
+        public ?string $bracket,
         public ?string $homeId,
         public ?string $awayId,
         public string $status,
