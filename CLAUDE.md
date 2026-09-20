@@ -36,7 +36,9 @@ docker compose exec node npm ...
 - Виды спорта: волейбол, пляжный волейбол, настольный теннис. Шахматы в перспективе.
 - Результат матча — интерфейс `MatchOutcome`: `SetBasedOutcome` (партии) и `PointOutcome` (победа/ничья/поражение).
 - Агрегаты: `Tournament` (участники, правила, доступ) и `Stage` (формат, матчи, продвижение). `Match` — сущность внутри `Stage`.
-- Форматы — доменные сервисы `FormatGenerator`: SingleElimination, DoubleElimination, RoundRobin, позже Swiss.
+- Форматы — доменные сервисы `FormatGenerator`: SingleElimination, DoubleElimination, RoundRobin, Swiss.
+- Швейцарская система достраивается по ходу: генератор делает только первый тур, дальше `Stage::pairNextRound`
+  с сервисом `SwissPairing`. Стадия хранит исходный посев (`Stage::$seeding`), он нужен жеребьёвке.
 - Двойная сетка помечает матчи веткой (`BracketSide`) и нумерует раунды сквозной лентой: верхняя, нижняя, гранд-финал.
 - Группы и плей-офф — это этапы (`Stage::$phase`), а не формат: групповой этап это несколько круговых стадий
   с именами, плей-офф отдельная стадия второго этапа. Посев считают `GroupSplitter` и `PlayoffSeeder`.

@@ -63,7 +63,13 @@ final class TournamentViewAssembler
             rounds: $rounds,
             standings: $stage->format->isElimination()
                 ? null
-                : array_map($this->standing(...), $this->standings->calculate($stage->participants(), $stage->fixtures())),
+                : array_map($this->standing(...), $this->standings->calculate(
+                    $stage->participants(),
+                    $stage->fixtures(),
+                    useBuchholz: $stage->format->isPairedByRound(),
+                )),
+            awaitsNextRound: $stage->awaitsNextRound(),
+            plannedRounds: $stage->plannedRounds(),
         );
     }
 
@@ -80,6 +86,7 @@ final class TournamentViewAssembler
             setsLost: $row->setsLost,
             pointsWon: $row->pointsWon,
             pointsLost: $row->pointsLost,
+            buchholz: $row->buchholz,
             score: $row->score(),
         );
     }

@@ -4,6 +4,8 @@ import { computed } from 'vue';
 const props = defineProps({
     standings: { type: Array, required: true },
     names: { type: Object, required: true },
+    /** Бухгольц показываем только в швейцарской системе, где он решает при равенстве очков. */
+    showBuchholz: Boolean,
 });
 
 const hasDraws = computed(() => props.standings.some((r) => r.draws > 0));
@@ -23,6 +25,7 @@ const hasSets = computed(() => props.standings.some((r) => r.setsWon + r.setsLos
                     <th class="px-3 py-2 text-center font-medium" title="Поражения">П</th>
                     <th v-if="hasSets" class="px-3 py-2 text-center font-medium">Партии</th>
                     <th v-if="hasSets" class="hidden px-3 py-2 text-center font-medium sm:table-cell">Очки в партиях</th>
+                    <th v-if="showBuchholz" class="px-3 py-2 text-center font-medium" title="Сумма очков соперников">Бух</th>
                     <th class="px-3 py-2 text-center font-medium" title="Очки">О</th>
                 </tr>
             </thead>
@@ -36,6 +39,7 @@ const hasSets = computed(() => props.standings.some((r) => r.setsWon + r.setsLos
                     <td class="px-3 py-2 text-center tabular-nums">{{ row.losses }}</td>
                     <td v-if="hasSets" class="px-3 py-2 text-center tabular-nums text-slate-500">{{ row.setsWon }}:{{ row.setsLost }}</td>
                     <td v-if="hasSets" class="hidden px-3 py-2 text-center tabular-nums text-slate-500 sm:table-cell">{{ row.pointsWon }}:{{ row.pointsLost }}</td>
+                    <td v-if="showBuchholz" class="px-3 py-2 text-center tabular-nums text-slate-500">{{ row.buchholz }}</td>
                     <td class="px-3 py-2 text-center font-semibold tabular-nums">{{ row.score }}</td>
                 </tr>
             </tbody>

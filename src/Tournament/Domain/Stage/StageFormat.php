@@ -8,12 +8,14 @@ use Tournaments\Tournament\Domain\Stage\Format\DoubleElimination;
 use Tournaments\Tournament\Domain\Stage\Format\FormatGenerator;
 use Tournaments\Tournament\Domain\Stage\Format\RoundRobin;
 use Tournaments\Tournament\Domain\Stage\Format\SingleElimination;
+use Tournaments\Tournament\Domain\Stage\Format\SwissFirstRound;
 
 enum StageFormat: string
 {
     case SingleElimination = 'single_elimination';
     case DoubleElimination = 'double_elimination';
     case RoundRobin = 'round_robin';
+    case Swiss = 'swiss';
 
     public function generator(): FormatGenerator
     {
@@ -21,7 +23,14 @@ enum StageFormat: string
             self::SingleElimination => new SingleElimination,
             self::DoubleElimination => new DoubleElimination,
             self::RoundRobin => new RoundRobin,
+            self::Swiss => new SwissFirstRound,
         };
+    }
+
+    /** Туры появляются по ходу турнира, а не при генерации. */
+    public function isPairedByRound(): bool
+    {
+        return $this === self::Swiss;
     }
 
     /** Есть ли в формате выбывание: победитель идёт дальше, ничьи невозможны. */

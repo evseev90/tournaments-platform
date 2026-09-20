@@ -65,6 +65,7 @@ function finish() {
     }
 }
 const resultUrl = (target, fixture) => `${props.urls.manage}/stages/${target.id}/fixtures/${fixture.id}/result`;
+const pairUrl = (target) => `${props.urls.manage}/stages/${target.id}/round`;
 
 const tab = ref('bracket');
 const tabs = [{ value: 'bracket', label: 'Сетка' }, { value: 'schedule', label: 'Расписание' }];
@@ -130,7 +131,7 @@ const playableMatches = computed(
                 <PlayoffSetup v-if="groupsFinished && !hasPlayoff && isRunning" :groups="groups" :base-url="urls.manage" />
 
                 <div class="rounded-2xl border border-slate-200 bg-white p-5">
-                    <PhaseList :tournament="tournament" :editable="isRunning" :result-url="resultUrl" />
+                    <PhaseList :tournament="tournament" :editable="isRunning" :result-url="resultUrl" :pair-url="pairUrl" />
                     <p v-if="isRunning" class="mt-4 text-xs text-slate-400">Нажмите на матч, чтобы ввести счёт. Уже введённый счёт можно поправить, пока не сыгран следующий матч.</p>
                 </div>
             </div>

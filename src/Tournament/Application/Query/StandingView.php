@@ -17,6 +17,7 @@ final readonly class StandingView
         public int $setsLost,
         public int $pointsWon,
         public int $pointsLost,
+        public int $buchholz,
         public int $score,
     ) {}
 }

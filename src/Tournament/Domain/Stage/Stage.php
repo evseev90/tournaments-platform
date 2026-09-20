@@ -8,14 +8,18 @@ use DateTimeImmutable;
 use Tournaments\Shared\Domain\RecordsEvents;
 use Tournaments\Tournament\Domain\Event\FixtureResultRecorded;
 use Tournaments\Tournament\Domain\Event\FixtureResultReverted;
+use Tournaments\Tournament\Domain\Event\RoundPaired;
 use Tournaments\Tournament\Domain\Event\StageCompleted;
 use Tournaments\Tournament\Domain\Event\StageGenerated;
 use Tournaments\Tournament\Domain\Exception\CannotRevertResult;
 use Tournaments\Tournament\Domain\Exception\FixtureNotFound;
 use Tournaments\Tournament\Domain\Exception\FixtureNotReady;
 use Tournaments\Tournament\Domain\Exception\InvalidOutcome;
+use Tournaments\Tournament\Domain\Exception\RoundNotFinished;
 use Tournaments\Tournament\Domain\Scoring\MatchOutcome;
 use Tournaments\Tournament\Domain\Scoring\ScoringRules;
+use Tournaments\Tournament\Domain\Stage\Format\SwissFirstRound;
+use Tournaments\Tournament\Domain\Stage\Format\SwissPairing;
 use Tournaments\Tournament\Domain\Tournament\ParticipantId;
 use Tournaments\Tournament\Domain\Tournament\TournamentId;
 
@@ -42,6 +46,8 @@ final class Stage
         public private(set) StageStatus $status,
         public readonly ?string $name,
         public readonly int $phase,
+        /** @var list<ParticipantId> исходный порядок посева */
+        public readonly array $seeding,
         array $fixtures,
     ) {
         foreach ($fixtures as $fixture) {
@@ -61,13 +67,16 @@ final class Stage
         int $phase = 1,
     ): self {
         $fixtures = $format->generator()->generate($seeded, $settings);
-        $stage = new self($id, $tournamentId, $format, $settings, StageStatus::InProgress, $name, $phase, $fixtures);
+        $stage = new self($id, $tournamentId, $format, $settings, StageStatus::InProgress, $name, $phase, $seeded, $fixtures);
         $stage->recordEvent(new StageGenerated($tournamentId, $id, $now));
 
         return $stage;
     }
 
-    /** @param list<Fixture> $fixtures */
+    /**
+     * @param  list<Fixture>  $fixtures
+     * @param  list<ParticipantId>  $seeding
+     */
     public static function reconstitute(
         StageId $id,
         TournamentId $tournamentId,
@@ -77,8 +86,56 @@ final class Stage
         array $fixtures,
         ?string $name = null,
         int $phase = 1,
+        array $seeding = [],
     ): self {
-        return new self($id, $tournamentId, $format, $settings, $status, $name, $phase, $fixtures);
+        return new self($id, $tournamentId, $format, $settings, $status, $name, $phase, $seeding, $fixtures);
+    }
+
+    /**
+     * Жеребьёвка очередного тура швейцарской системы. Доступна, когда текущий тур доигран
+     * и плановые туры ещё не кончились.
+     */
+    public function pairNextRound(SwissPairing $pairing, DateTimeImmutable $now): void
+    {
+        if (! $this->needsMoreRounds()) {
+            throw new RoundNotFinished('Все туры сыграны');
+        }
+        if (! $this->allSettled()) {
+            throw new RoundNotFinished('Сначала внесите результаты текущего тура');
+        }
+
+        $round = $this->roundsCount() + 1;
+        $pairs = $pairing->pair($this->seeding, $this->fixtures(), $round);
+
+        foreach (SwissFirstRound::materialize($pairs, $round) as $fixture) {
+            $this->fixtures[$fixture->id->value] = $fixture;
+        }
+
+        $this->status = StageStatus::InProgress;
+        $this->recordEvent(new RoundPaired($this->tournamentId, $this->id, $round, $now));
+    }
+
+    /** Сколько туров играет швейцарская система: из настроек или по числу участников. */
+    public function plannedRounds(): int
+    {
+        if (! $this->format->isPairedByRound()) {
+            return $this->roundsCount();
+        }
+
+        return $this->settings->rounds > 0
+            ? $this->settings->rounds
+            : SwissPairing::suggestedRounds(count($this->seeding));
+    }
+
+    public function needsMoreRounds(): bool
+    {
+        return $this->format->isPairedByRound() && $this->roundsCount() < $this->plannedRounds();
+    }
+
+    /** Текущий тур доигран, но турнир ещё не закончен: пора жеребьёвки. */
+    public function awaitsNextRound(): bool
+    {
+        return $this->needsMoreRounds() && $this->allSettled();
     }
 
     /**
@@ -104,7 +161,7 @@ final class Stage
         $this->advance($fixture);
         $this->recordEvent(new FixtureResultRecorded($this->tournamentId, $this->id, $fixtureId, $outcome, $now));
 
-        if ($this->allSettled()) {
+        if ($this->allSettled() && ! $this->needsMoreRounds()) {
             $this->status = StageStatus::Completed;
             $this->recordEvent(new StageCompleted($this->tournamentId, $this->id, $now));
         }
@@ -135,13 +192,17 @@ final class Stage
     }
 
     /**
-     * Участники стадии в порядке появления в матчах первого раунда.
-     * Для круговой это и есть состав группы.
+     * Участники стадии. Для стадий, созданных до появления явного посева, состав
+     * восстанавливается по матчам.
      *
      * @return list<ParticipantId>
      */
     public function participants(): array
     {
+        if ($this->seeding !== []) {
+            return $this->seeding;
+        }
+
         $seen = [];
         foreach ($this->fixtures() as $fixture) {
             foreach ([$fixture->home(), $fixture->away()] as $participant) {

@@ -15,6 +15,8 @@ use Tournaments\Tournament\Application\Command\GeneratePlayoff;
 use Tournaments\Tournament\Application\Command\GeneratePlayoffHandler;
 use Tournaments\Tournament\Application\Command\GenerateStage;
 use Tournaments\Tournament\Application\Command\GenerateStageHandler;
+use Tournaments\Tournament\Application\Command\PairNextRound;
+use Tournaments\Tournament\Application\Command\PairNextRoundHandler;
 use Tournaments\Tournament\Domain\Stage\StageFormat;
 
 final class StageController extends Controller
@@ -27,6 +29,7 @@ final class StageController extends Controller
             'settings' => ['nullable', 'array'],
             'settings.third_place_match' => ['nullable', 'boolean'],
             'settings.legs' => ['nullable', 'integer', 'in:1,2'],
+            'settings.rounds' => ['nullable', 'integer', 'between:0,20'],
         ]);
         $handler(new GenerateStage($this->organizerTournament($request)->id, $data['format'], $data['settings'] ?? []));
 
@@ -59,6 +62,13 @@ final class StageController extends Controller
         ));
 
         return $this->backToManage($request, 'Плей-офф собран по итогам групп');
+    }
+
+    public function pairRound(Request $request, string $token, string $stage, PairNextRoundHandler $handler): RedirectResponse
+    {
+        $handler(new PairNextRound($this->organizerTournament($request)->id, $stage));
+
+        return $this->backToManage($request, 'Пары следующего тура составлены');
     }
 
     public function destroy(Request $request, DiscardStageHandler $handler): RedirectResponse

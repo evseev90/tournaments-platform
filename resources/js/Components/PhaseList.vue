@@ -6,6 +6,7 @@ const props = defineProps({
     tournament: { type: Object, required: true },
     editable: Boolean,
     resultUrl: { type: Function, default: () => '' },
+    pairUrl: { type: Function, default: () => '' },
 });
 
 /** Этапы турнира: группы идут одним этапом, плей-офф следующим. */
@@ -37,7 +38,7 @@ const phases = computed(() => {
                 >
                     <StageView
                         :tournament="tournament" :stage="stage" :dense="group.stages.length > 1"
-                        :editable="editable" :result-url="(fixture) => resultUrl(stage, fixture)"
+                        :editable="editable" :result-url="(fixture) => resultUrl(stage, fixture)" :pair-url="pairUrl(stage)"
                     />
                 </div>
             </div>

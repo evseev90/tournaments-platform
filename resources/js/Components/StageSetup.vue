@@ -10,19 +10,25 @@ const props = defineProps({
 
 const form = useForm({
     format: 'single_elimination',
-    settings: { third_place_match: false, legs: 1 },
+    settings: { third_place_match: false, legs: 1, rounds: 0 },
     groups: 2,
 });
+
+/** Столько туров нужно, чтобы выявился единоличный лидер. */
+const suggestedRounds = computed(() => Math.max(1, Math.ceil(Math.log2(Math.max(2, props.participantsCount)))));
 
 const formats = [
     { value: 'single_elimination', label: 'Олимпийская', description: 'Проиграл — выбыл. Быстро, подходит для любого числа участников.', min: 2 },
     { value: 'double_elimination', label: 'Двойная сетка', description: 'Вылет после второго поражения. Одна осечка не выбивает из турнира.', min: 3 },
     { value: 'round_robin', label: 'Круговая', description: 'Каждый с каждым, итоговая таблица. Дольше, зато честнее.', min: 2 },
+    { value: 'swiss', label: 'Швейцарская', description: 'Несколько туров, соперники по силам. Подходит, когда участников много, а времени мало.', min: 3 },
     { value: 'groups', label: 'Группы и плей-офф', description: 'Сначала круговая в группах, потом сетка на выбывание.', min: 4 },
 ];
 
 const selected = computed(() => formats.find((f) => f.value === form.format));
 const isGroups = computed(() => form.format === 'groups');
+const isSwiss = computed(() => form.format === 'swiss');
+const swissRounds = computed(() => (form.settings.rounds > 0 ? form.settings.rounds : suggestedRounds.value));
 
 const groupOptions = computed(() => {
     const max = Math.min(8, Math.floor(props.participantsCount / 2));
@@ -40,6 +46,7 @@ const enough = computed(() => props.participantsCount >= selected.value.min && (
 const matches = computed(() => {
     const n = props.participantsCount;
     if (form.format === 'double_elimination') return 2 * n - 2;
+    if (isSwiss.value) return Math.ceil(n / 2) * swissRounds.value;
     if (form.format === 'round_robin') return (n * (n - 1) / 2) * form.settings.legs;
     if (isGroups.value) {
         const base = Math.floor(n / form.groups);
@@ -87,6 +94,17 @@ function generate() {
                 Победитель нижней сетки играет один матч гранд-финала: переигровки при его победе не будет.
             </p>
 
+            <template v-else-if="isSwiss">
+                <label class="flex flex-wrap items-center gap-2 text-sm">
+                    Туров:
+                    <select v-model.number="form.settings.rounds" class="rounded-lg border border-slate-200 px-2 py-1 text-sm">
+                        <option :value="0">по числу участников ({{ suggestedRounds }})</option>
+                        <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
+                    </select>
+                </label>
+                <p class="text-xs text-slate-400">Пары каждого тура составляются после предыдущего: соперники подбираются по набранным очкам.</p>
+            </template>
+
             <template v-else>
                 <label v-if="isGroups" class="flex flex-wrap items-center gap-2 text-sm">
                     Групп:
@@ -113,7 +131,7 @@ function generate() {
                     type="submit" :disabled="!enough || form.processing"
                     class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-40"
                 >
-                    {{ isGroups ? 'Развести по группам' : 'Сгенерировать сетку' }}
+                    {{ isGroups ? 'Развести по группам' : isSwiss ? 'Начать первый тур' : 'Сгенерировать сетку' }}
                 </button>
             </div>
             <p class="text-xs text-slate-400">После генерации состав замораживается. Пока нет результатов, этап можно отменить.</p>

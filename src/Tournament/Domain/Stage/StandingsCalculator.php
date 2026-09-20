@@ -9,8 +9,11 @@ use Tournaments\Tournament\Domain\Scoring\Side;
 use Tournaments\Tournament\Domain\Tournament\ParticipantId;
 
 /**
- * Таблица круговой стадии. Порядок: очки, личные встречи внутри группы с равными очками,
- * соотношение партий, соотношение очков в партиях, посев.
+ * Таблица круговой и швейцарской стадии.
+ *
+ * Порядок: очки, затем тайбрейки. В круговой это личные встречи внутри группы с равными очками,
+ * соотношение партий и очков в партиях. В швейцарской перед ними идёт Бухгольц, сумма очков
+ * соперников: он показывает, насколько тяжёлый путь прошёл участник.
  */
 final class StandingsCalculator
 {
@@ -19,7 +22,7 @@ final class StandingsCalculator
      * @param  list<Fixture>  $fixtures
      * @return list<StandingRow>
      */
-    public function calculate(array $participants, array $fixtures): array
+    public function calculate(array $participants, array $fixtures, bool $useBuchholz = false): array
     {
         /** @var array<string, StandingRow> $rows */
         $rows = [];
@@ -32,6 +35,21 @@ final class StandingsCalculator
             $this->apply($rows, $fixture);
         }
 
+        // Пропуск тура в швейцарской системе засчитывается как победа, играть было не с кем.
+        foreach ($fixtures as $fixture) {
+            $lonely = $fixture->isBye() ? ($fixture->home() ?? $fixture->away()) : null;
+            $row = $lonely === null ? null : ($rows[$lonely->value] ?? null);
+            if ($row !== null) {
+                $row->played++;
+                $row->wins++;
+                $row->hadBye = true;
+            }
+        }
+
+        if ($useBuchholz) {
+            $this->applyBuchholz($rows, $played);
+        }
+
         $sorted = array_values($rows);
         usort($sorted, static fn (StandingRow $a, StandingRow $b) => $b->score() <=> $a->score());
 
@@ -39,11 +57,13 @@ final class StandingsCalculator
         foreach ($this->groupByScore($sorted) as $group) {
             $headToHead = $this->headToHead($group, $played);
             usort($group, static fn (StandingRow $a, StandingRow $b) => [
+                $useBuchholz ? $b->buchholz : 0,
                 $headToHead[$b->participantId->value],
                 $b->setRatio(),
                 $b->pointRatio(),
                 $a->seed,
             ] <=> [
+                $useBuchholz ? $a->buchholz : 0,
                 $headToHead[$a->participantId->value],
                 $a->setRatio(),
                 $a->pointRatio(),
@@ -57,6 +77,23 @@ final class StandingsCalculator
         }
 
         return $result;
+    }
+
+    /**
+     * @param  array<string, StandingRow>  $rows
+     * @param  array<int, Fixture>  $played
+     */
+    private function applyBuchholz(array $rows, array $played): void
+    {
+        foreach ($played as $fixture) {
+            $home = $fixture->home();
+            $away = $fixture->away();
+            if ($home === null || $away === null || ! isset($rows[$home->value], $rows[$away->value])) {
+                continue;
+            }
+            $rows[$home->value]->buchholz += $rows[$away->value]->score();
+            $rows[$away->value]->buchholz += $rows[$home->value]->score();
+        }
     }
 
     /** @param array<string, StandingRow> $rows */

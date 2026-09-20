@@ -30,6 +30,7 @@ Route::prefix('/manage/{token}')->middleware(ResolveOrganizerTournament::class)-
     Route::post('/stage', [StageController::class, 'store'])->name('stage.store');
     Route::post('/groups', [StageController::class, 'storeGroups'])->name('groups.store');
     Route::post('/playoff', [StageController::class, 'storePlayoff'])->name('playoff.store');
+    Route::post('/stages/{stage}/round', [StageController::class, 'pairRound'])->name('stage.round');
     Route::delete('/stage', [StageController::class, 'destroy'])->name('stage.destroy');
 
     Route::post('/stages/{stage}/fixtures/{fixture}/result', [ResultController::class, 'store'])->name('results.store');

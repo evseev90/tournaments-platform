@@ -8,6 +8,7 @@ export const formatLabels = {
     single_elimination: 'Олимпийская система',
     double_elimination: 'Двойная сетка',
     round_robin: 'Круговая система',
+    swiss: 'Швейцарская система',
 };
 
 export const participantTypeLabels = {

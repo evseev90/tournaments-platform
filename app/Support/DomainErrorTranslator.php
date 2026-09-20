@@ -17,12 +17,14 @@ use Tournaments\Tournament\Application\Exception\GroupsNotFinished;
 use Tournaments\Tournament\Application\Exception\NoStageGenerated;
 use Tournaments\Tournament\Application\Exception\StageAlreadyGenerated;
 use Tournaments\Tournament\Application\Exception\StageHasResults;
+use Tournaments\Tournament\Domain\Exception\CannotPairRound;
 use Tournaments\Tournament\Domain\Exception\CannotRevertResult;
 use Tournaments\Tournament\Domain\Exception\FixtureNotReady;
 use Tournaments\Tournament\Domain\Exception\InvalidName;
 use Tournaments\Tournament\Domain\Exception\InvalidOutcome;
 use Tournaments\Tournament\Domain\Exception\NotEnoughParticipants;
 use Tournaments\Tournament\Domain\Exception\ParticipantNotFound;
+use Tournaments\Tournament\Domain\Exception\RoundNotFinished;
 use Tournaments\Tournament\Domain\Exception\TournamentLocked;
 
 /** Доменные ошибки говорят по-английски для логов, пользователю показываем русский текст. */
@@ -40,7 +42,7 @@ final class DomainErrorTranslator
             CannotRevertResult::class => 'Результат нельзя отменить: следующий матч уже сыгран.',
             StageAlreadyGenerated::class => 'Сетка уже сгенерирована. Сначала отмените её.',
             StageHasResults::class => 'Нельзя отменить сетку, в которой уже есть результаты.',
-            NoStageGenerated::class, GroupsNotFinished::class => $exception->getMessage(),
+            NoStageGenerated::class, GroupsNotFinished::class, CannotPairRound::class, RoundNotFinished::class => $exception->getMessage(),
             NoVenues::class => 'Добавьте хотя бы одну площадку.',
             VenueNotFound::class => 'Площадка не найдена.',
             VenueBusy::class => 'На этой площадке в это время уже идёт другой матч.',

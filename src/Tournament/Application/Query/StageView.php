@@ -20,5 +20,8 @@ final readonly class StageView
         public string $status,
         public array $rounds,
         public ?array $standings,
+        /** Текущий тур доигран, ждёт жеребьёвки следующего. Только для швейцарской системы. */
+        public bool $awaitsNextRound,
+        public int $plannedRounds,
     ) {}
 }

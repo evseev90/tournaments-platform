@@ -62,12 +62,13 @@ final readonly class PostgresStageRepository implements StageRepository
             'tournament_id' => $stage->tournamentId->value,
             'name' => $stage->name,
             'phase' => $stage->phase,
+            'seeding' => json_encode(array_map(static fn (ParticipantId $id) => $id->value, $stage->seeding), JSON_THROW_ON_ERROR),
             'format' => $stage->format->value,
             'settings' => json_encode($stage->settings->toArray(), JSON_THROW_ON_ERROR),
             'status' => $stage->status->value,
             'created_at' => $now,
             'updated_at' => $now,
-        ]], ['id'], ['settings', 'status', 'updated_at']);
+        ]], ['id'], ['settings', 'status', 'seeding', 'updated_at']);
 
         $rows = array_map(static fn (Fixture $f) => [
             'id' => $f->id->value,
@@ -125,6 +126,7 @@ final readonly class PostgresStageRepository implements StageRepository
             fixtures: $fixtures,
             name: $row->name,
             phase: (int) $row->phase,
+            seeding: array_map(ParticipantId::fromString(...), Json::list($row->seeding)),
         );
     }
 

@@ -27,6 +27,11 @@ final class StandingRow
 
     public int $pointsLost = 0;
 
+    /** Сумма очков соперников: в швейцарской системе это главный тайбрейк. */
+    public int $buchholz = 0;
+
+    public bool $hadBye = false;
+
     public function __construct(
         public readonly ParticipantId $participantId,
         public readonly int $seed,
