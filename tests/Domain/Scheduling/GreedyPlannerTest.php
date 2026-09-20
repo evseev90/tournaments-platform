@@ -8,9 +8,9 @@ use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Tournaments\Scheduling\Domain\Assignment;
-use Tournaments\Scheduling\Domain\CompetitorId;
 use Tournaments\Scheduling\Domain\Exception\NoVenues;
 use Tournaments\Scheduling\Domain\MatchId;
+use Tournaments\Scheduling\Domain\ParticipantRef;
 use Tournaments\Scheduling\Domain\Planning\GreedyPlanner;
 use Tournaments\Scheduling\Domain\Planning\PlannableMatch;
 use Tournaments\Scheduling\Domain\ScheduleSettings;
@@ -144,10 +144,10 @@ final class GreedyPlannerTest extends TestCase
         return new ScheduleSettings($this->start, matchMinutes: 30, breakMinutes: 0, restMinutes: 0);
     }
 
-    /** @return list<CompetitorId> */
+    /** @return list<ParticipantRef> */
     private function competitors(int $count): array
     {
-        return array_map(static fn () => CompetitorId::generate(), range(1, $count));
+        return array_map(static fn () => ParticipantRef::generate(), range(1, $count));
     }
 
     /** @return list<Venue> */
@@ -163,7 +163,7 @@ final class GreedyPlannerTest extends TestCase
         return $result;
     }
 
-    private function match(int $order, int $sequence, CompetitorId $home, CompetitorId $away): PlannableMatch
+    private function match(int $order, int $sequence, ParticipantRef $home, ParticipantRef $away): PlannableMatch
     {
         return new PlannableMatch(MatchId::generate(), $order, $sequence, $home, $away);
     }

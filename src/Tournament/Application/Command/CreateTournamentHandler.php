@@ -9,6 +9,7 @@ use Tournaments\Shared\Application\EventDispatcher;
 use Tournaments\Tournament\Domain\Scoring\ScoringRulesFactory;
 use Tournaments\Tournament\Domain\Scoring\Sport;
 use Tournaments\Tournament\Domain\Tournament\Name;
+use Tournaments\Tournament\Domain\Tournament\OwnerId;
 use Tournaments\Tournament\Domain\Tournament\Tournament;
 use Tournaments\Tournament\Domain\Tournament\TournamentId;
 use Tournaments\Tournament\Domain\Tournament\TournamentRepository;
@@ -29,6 +30,7 @@ final readonly class CreateTournamentHandler
             sport: Sport::from($command->sport),
             rules: $command->rules === null ? null : ScoringRulesFactory::rulesFromArray($command->rules),
             now: $this->clock->now(),
+            ownerId: $command->ownerId === null ? null : new OwnerId($command->ownerId),
         );
 
         $this->tournaments->save($tournament);

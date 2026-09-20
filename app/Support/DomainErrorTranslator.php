@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Support;
 
-use Tournaments\Scheduling\Domain\Exception\CompetitorBusy;
 use Tournaments\Scheduling\Domain\Exception\InvalidVenueName;
 use Tournaments\Scheduling\Domain\Exception\MatchNotScheduled;
 use Tournaments\Scheduling\Domain\Exception\NothingToPlan;
 use Tournaments\Scheduling\Domain\Exception\NoVenues;
+use Tournaments\Scheduling\Domain\Exception\ParticipantBusy;
 use Tournaments\Scheduling\Domain\Exception\ScheduleNotFound;
 use Tournaments\Scheduling\Domain\Exception\VenueBusy;
 use Tournaments\Scheduling\Domain\Exception\VenueNotFound;
@@ -25,6 +25,7 @@ use Tournaments\Tournament\Domain\Exception\InvalidOutcome;
 use Tournaments\Tournament\Domain\Exception\NotEnoughParticipants;
 use Tournaments\Tournament\Domain\Exception\ParticipantNotFound;
 use Tournaments\Tournament\Domain\Exception\RoundNotFinished;
+use Tournaments\Tournament\Domain\Exception\TournamentAlreadyOwned;
 use Tournaments\Tournament\Domain\Exception\TournamentLocked;
 
 /** Доменные ошибки говорят по-английски для логов, пользователю показываем русский текст. */
@@ -37,6 +38,7 @@ final class DomainErrorTranslator
             InvalidName::class => 'Название не может быть пустым и длиннее 100 символов.',
             NotEnoughParticipants::class => 'Слишком мало участников для этого формата.',
             TournamentLocked::class => 'Турнир уже начался: состав и правила менять нельзя.',
+            TournamentAlreadyOwned::class => 'Этот турнир уже привязан к другому аккаунту.',
             ParticipantNotFound::class => 'Участник не найден.',
             FixtureNotReady::class => 'В этом матче ещё не известны оба участника.',
             CannotRevertResult::class => 'Результат нельзя отменить: следующий матч уже сыгран.',
@@ -46,7 +48,7 @@ final class DomainErrorTranslator
             NoVenues::class => 'Добавьте хотя бы одну площадку.',
             VenueNotFound::class => 'Площадка не найдена.',
             VenueBusy::class => 'На этой площадке в это время уже идёт другой матч.',
-            CompetitorBusy::class => 'Участник в это время уже играет другой матч.',
+            ParticipantBusy::class => 'Участник в это время уже играет другой матч.',
             MatchNotScheduled::class => 'Этого матча нет в расписании.',
             InvalidVenueName::class => 'Название площадки не может быть пустым и длиннее 60 символов.',
             ScheduleNotFound::class, NothingToPlan::class => $exception->getMessage(),

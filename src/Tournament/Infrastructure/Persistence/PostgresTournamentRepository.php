@@ -13,6 +13,7 @@ use Tournaments\Tournament\Domain\Scoring\ScoringRulesFactory;
 use Tournaments\Tournament\Domain\Scoring\Sport;
 use Tournaments\Tournament\Domain\Tournament\AdminToken;
 use Tournaments\Tournament\Domain\Tournament\Name;
+use Tournaments\Tournament\Domain\Tournament\OwnerId;
 use Tournaments\Tournament\Domain\Tournament\Participant;
 use Tournaments\Tournament\Domain\Tournament\ParticipantId;
 use Tournaments\Tournament\Domain\Tournament\ParticipantType;
@@ -71,7 +72,8 @@ final readonly class PostgresTournamentRepository implements TournamentRepositor
             'public_slug' => $tournament->publicSlug->value,
             'created_at' => $tournament->createdAt->format(DATE_ATOM),
             'updated_at' => $now,
-        ]], ['id'], ['name', 'sport', 'rules', 'status', 'updated_at']);
+            'owner_id' => $tournament->ownerId?->value,
+        ]], ['id'], ['name', 'sport', 'rules', 'status', 'owner_id', 'updated_at']);
 
         $participants = $tournament->participants();
         $ids = array_map(static fn (Participant $p) => $p->id->value, $participants);
@@ -115,6 +117,7 @@ final readonly class PostgresTournamentRepository implements TournamentRepositor
             publicSlug: PublicSlug::fromString($row->public_slug),
             createdAt: new DateTimeImmutable($row->created_at),
             participants: array_values($participants),
+            ownerId: $row->owner_id === null ? null : new OwnerId((int) $row->owner_id),
         );
     }
 

@@ -6,8 +6,8 @@ namespace Tournaments\Scheduling\Domain\Planning;
 
 use DateTimeImmutable;
 use Tournaments\Scheduling\Domain\Assignment;
-use Tournaments\Scheduling\Domain\CompetitorId;
 use Tournaments\Scheduling\Domain\Exception\NoVenues;
+use Tournaments\Scheduling\Domain\ParticipantRef;
 use Tournaments\Scheduling\Domain\ScheduleSettings;
 use Tournaments\Scheduling\Domain\Venue;
 
@@ -69,7 +69,7 @@ final class GreedyPlanner implements Planner
             $venueFree[$venue->id->value] = self::plusMinutes($endsAt, $settings->breakMinutes);
             $matchEnds[$match->id->value] = $endsAt;
             foreach ([$match->home, $match->away] as $competitor) {
-                if ($competitor instanceof CompetitorId) {
+                if ($competitor instanceof ParticipantRef) {
                     $competitorFree[$competitor->value] = self::plusMinutes($endsAt, $settings->restMinutes);
                 }
             }

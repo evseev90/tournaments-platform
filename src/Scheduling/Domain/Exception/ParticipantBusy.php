@@ -4,4 +4,4 @@ declare(strict_types=1);
 
 namespace Tournaments\Scheduling\Domain\Exception;
 
-final class CompetitorBusy extends SchedulingException {}
+final class ParticipantBusy extends SchedulingException {}

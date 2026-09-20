@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Tournaments\Tournament\Domain\Exception\CannotRevertResult;
 use Tournaments\Tournament\Domain\Exception\NotEnoughParticipants;
 use Tournaments\Tournament\Domain\Exception\RoundNotFinished;
 use Tournaments\Tournament\Domain\Scoring\ScoringRules;
@@ -141,6 +142,39 @@ final class SwissTest extends TestCase
             self::assertArrayNotHasKey($key, $seen, 'пара повторилась');
             $seen[$key] = true;
         }
+    }
+
+    #[Test]
+    public function result_is_locked_once_the_next_round_is_paired(): void
+    {
+        [$stage] = $this->stage(8);
+        $this->playRound($stage, 1);
+        $first = $stage->fixturesOfRound(1)[0];
+
+        // Пока следующий тур не разведён, ошибку в счёте ещё можно поправить.
+        $stage->revertResult($first->id, $this->now);
+        self::assertTrue($first->isReady());
+
+        $this->playRound($stage, 1);
+        $stage->pairNextRound(new SwissPairing, $this->now);
+
+        $this->expectException(CannotRevertResult::class);
+        $stage->revertResult($first->id, $this->now);
+    }
+
+    #[Test]
+    public function result_of_the_current_round_can_still_be_corrected(): void
+    {
+        [$stage] = $this->stage(8);
+        $this->playRound($stage, 1);
+        $stage->pairNextRound(new SwissPairing, $this->now);
+        $this->playRound($stage, 2);
+
+        $second = $stage->fixturesOfRound(2)[0];
+        $stage->revertResult($second->id, $this->now);
+
+        self::assertTrue($second->isReady(), 'последний тур правится свободно');
+        self::assertFalse($stage->awaitsNextRound());
     }
 
     #[Test]

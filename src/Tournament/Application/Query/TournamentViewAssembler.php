@@ -30,6 +30,7 @@ final class TournamentViewAssembler
             status: $tournament->status->value,
             publicSlug: $tournament->publicSlug->value,
             createdAt: $tournament->createdAt->format(DateTimeInterface::ATOM),
+            ownerId: $tournament->ownerId?->value,
             participants: array_map($this->participant(...), $tournament->participants()),
             stages: array_map(fn (Stage $stage) => $this->stage($stage, $tournament), $stages),
         );

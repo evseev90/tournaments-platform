@@ -8,15 +8,15 @@ use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Tournaments\Scheduling\Domain\Assignment;
-use Tournaments\Scheduling\Domain\CompetitorId;
 use Tournaments\Scheduling\Domain\Event\MatchMoved;
 use Tournaments\Scheduling\Domain\Event\ScheduleCleared;
 use Tournaments\Scheduling\Domain\Event\SchedulePlanned;
-use Tournaments\Scheduling\Domain\Exception\CompetitorBusy;
 use Tournaments\Scheduling\Domain\Exception\MatchNotScheduled;
+use Tournaments\Scheduling\Domain\Exception\ParticipantBusy;
 use Tournaments\Scheduling\Domain\Exception\VenueBusy;
 use Tournaments\Scheduling\Domain\Exception\VenueNotFound;
 use Tournaments\Scheduling\Domain\MatchId;
+use Tournaments\Scheduling\Domain\ParticipantRef;
 use Tournaments\Scheduling\Domain\Planning\GreedyPlanner;
 use Tournaments\Scheduling\Domain\Planning\PlannableMatch;
 use Tournaments\Scheduling\Domain\Schedule;
@@ -124,17 +124,17 @@ final class ScheduleTest extends TestCase
     #[Test]
     public function cannot_put_the_same_competitor_in_two_places_at_once(): void
     {
-        $shared = CompetitorId::generate();
+        $shared = ParticipantRef::generate();
         $matches = [
-            new PlannableMatch(MatchId::generate(), 1, 1, $shared, CompetitorId::generate()),
-            new PlannableMatch(MatchId::generate(), 1, 2, $shared, CompetitorId::generate()),
+            new PlannableMatch(MatchId::generate(), 1, 1, $shared, ParticipantRef::generate()),
+            new PlannableMatch(MatchId::generate(), 1, 2, $shared, ParticipantRef::generate()),
         ];
         $venues = $this->addVenues(2);
         $this->schedule->plan($matches, new GreedyPlanner, $this->start);
 
         $first = $this->schedule->assignment($matches[0]->id);
 
-        $this->expectException(CompetitorBusy::class);
+        $this->expectException(ParticipantBusy::class);
         $this->schedule->move($matches[1]->id, $venues[1]->id, $first->startsAt, $this->start);
     }
 
@@ -173,8 +173,8 @@ final class ScheduleTest extends TestCase
         $this->schedule->plan([$later], new GreedyPlanner, $this->start);
         self::assertNull($this->schedule->assignment($later->id)->home);
 
-        $home = CompetitorId::generate();
-        $this->schedule->refreshCompetitors([new PlannableMatch($later->id, 2, 1, $home, CompetitorId::generate())]);
+        $home = ParticipantRef::generate();
+        $this->schedule->refreshParticipants([new PlannableMatch($later->id, 2, 1, $home, ParticipantRef::generate())]);
 
         self::assertTrue($this->schedule->assignment($later->id)->home?->equals($home) ?? false);
     }
@@ -185,7 +185,7 @@ final class ScheduleTest extends TestCase
         $venueList = $this->addVenues($venues);
         $matchList = [];
         for ($i = 1; $i <= $matches; $i++) {
-            $matchList[] = new PlannableMatch(MatchId::generate(), 1, $i, CompetitorId::generate(), CompetitorId::generate());
+            $matchList[] = new PlannableMatch(MatchId::generate(), 1, $i, ParticipantRef::generate(), ParticipantRef::generate());
         }
         $this->schedule->plan($matchList, new GreedyPlanner, $this->start);
 

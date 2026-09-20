@@ -14,6 +14,7 @@ use Tournaments\Tournament\Domain\Event\TournamentReopened;
 use Tournaments\Tournament\Domain\Event\TournamentStarted;
 use Tournaments\Tournament\Domain\Exception\NotEnoughParticipants;
 use Tournaments\Tournament\Domain\Exception\ParticipantNotFound;
+use Tournaments\Tournament\Domain\Exception\TournamentAlreadyOwned;
 use Tournaments\Tournament\Domain\Exception\TournamentLocked;
 use Tournaments\Tournament\Domain\Scoring\ScoringRules;
 use Tournaments\Tournament\Domain\Scoring\Sport;
@@ -41,6 +42,7 @@ final class Tournament
         public readonly AdminToken $adminToken,
         public readonly PublicSlug $publicSlug,
         public readonly DateTimeImmutable $createdAt,
+        public private(set) ?OwnerId $ownerId,
         array $participants,
     ) {
         foreach ($participants as $participant) {
@@ -54,6 +56,7 @@ final class Tournament
         Sport $sport,
         ?ScoringRules $rules,
         DateTimeImmutable $now,
+        ?OwnerId $ownerId = null,
     ): self {
         $tournament = new self(
             id: $id,
@@ -64,6 +67,7 @@ final class Tournament
             adminToken: AdminToken::generate(),
             publicSlug: PublicSlug::generate(),
             createdAt: $now,
+            ownerId: $ownerId,
             participants: [],
         );
         $tournament->recordEvent(new TournamentCreated($id, $now));
@@ -82,8 +86,26 @@ final class Tournament
         PublicSlug $publicSlug,
         DateTimeImmutable $createdAt,
         array $participants,
+        ?OwnerId $ownerId = null,
     ): self {
-        return new self($id, $name, $sport, $rules, $status, $adminToken, $publicSlug, $createdAt, $participants);
+        return new self($id, $name, $sport, $rules, $status, $adminToken, $publicSlug, $createdAt, $ownerId, $participants);
+    }
+
+    /**
+     * Привязка турнира к аккаунту. Анонимный турнир может забрать себе тот, кто знает ссылку
+     * организатора; чужой турнир забрать нельзя.
+     */
+    public function claimBy(OwnerId $owner): void
+    {
+        if ($this->ownerId !== null && ! $this->ownerId->equals($owner)) {
+            throw new TournamentAlreadyOwned('У турнира уже есть владелец');
+        }
+        $this->ownerId = $owner;
+    }
+
+    public function isOwnedBy(?OwnerId $owner): bool
+    {
+        return $owner !== null && $this->ownerId?->equals($owner) === true;
     }
 
     public function rename(Name $name): void

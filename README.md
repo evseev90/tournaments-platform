@@ -55,5 +55,6 @@ tests/          Domain, Application, Unit, Feature
 docker/         Dockerfile PHP и init-скрипты базы
 ```
 
-Подробнее об архитектуре и терминах: [docs/domain.md](docs/domain.md) про турниры,
-[docs/scheduling.md](docs/scheduling.md) про расписание.
+Единый язык проекта: [карта контекстов](CONTEXT-MAP.md) и глоссарий каждого из них.
+Механика: [форматы и правила](docs/formats.md), [расписание](docs/scheduling.md),
+[статистика](docs/statistics.md). Архитектурные решения — в [docs/adr](docs/adr).

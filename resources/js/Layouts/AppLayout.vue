@@ -1,8 +1,9 @@
 <script setup>
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 
 const page = usePage();
+const user = computed(() => page.props.auth?.user ?? null);
 const success = computed(() => page.props.flash?.success);
 const domainError = computed(() => page.props.errors?.domain);
 
@@ -21,7 +22,16 @@ watch([success, domainError], ([s, e]) => {
                     <span class="flex size-7 items-center justify-center rounded-lg bg-emerald-600 text-sm text-white">T</span>
                     Tournaments
                 </Link>
-                <slot name="header-actions" />
+                <div class="flex items-center gap-4 text-sm">
+                    <slot name="header-actions" />
+                    <template v-if="user">
+                        <Link href="/my" class="text-slate-500 hover:text-slate-900">Мои турниры</Link>
+                        <button type="button" class="text-slate-400 hover:text-slate-900" @click="router.post('/logout')">Выйти</button>
+                    </template>
+                    <template v-else>
+                        <Link href="/login" class="text-slate-500 hover:text-slate-900">Войти</Link>
+                    </template>
+                </div>
             </div>
         </header>
 

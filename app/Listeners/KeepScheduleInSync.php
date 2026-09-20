@@ -6,8 +6,8 @@ namespace App\Listeners;
 
 use Tournaments\Scheduling\Application\Command\ClearSchedule;
 use Tournaments\Scheduling\Application\Command\ClearScheduleHandler;
-use Tournaments\Scheduling\Application\Command\RefreshScheduleCompetitors;
-use Tournaments\Scheduling\Application\Command\RefreshScheduleCompetitorsHandler;
+use Tournaments\Scheduling\Application\Command\RefreshScheduleParticipants;
+use Tournaments\Scheduling\Application\Command\RefreshScheduleParticipantsHandler;
 use Tournaments\Scheduling\Domain\Exception\ScheduleNotFound;
 use Tournaments\Tournament\Domain\Event\FixtureResultRecorded;
 use Tournaments\Tournament\Domain\Event\FixtureResultReverted;
@@ -20,18 +20,18 @@ use Tournaments\Tournament\Domain\Event\TournamentReopened;
 final readonly class KeepScheduleInSync
 {
     public function __construct(
-        private RefreshScheduleCompetitorsHandler $refresh,
+        private RefreshScheduleParticipantsHandler $refresh,
         private ClearScheduleHandler $clear,
     ) {}
 
     public function onResultRecorded(FixtureResultRecorded $event): void
     {
-        ($this->refresh)(new RefreshScheduleCompetitors($event->tournamentId->value));
+        ($this->refresh)(new RefreshScheduleParticipants($event->tournamentId->value));
     }
 
     public function onResultReverted(FixtureResultReverted $event): void
     {
-        ($this->refresh)(new RefreshScheduleCompetitors($event->tournamentId->value));
+        ($this->refresh)(new RefreshScheduleParticipants($event->tournamentId->value));
     }
 
     public function onTournamentReopened(TournamentReopened $event): void

@@ -19,6 +19,14 @@ abstract class Controller
         return $tournament;
     }
 
+    /** Идентификатор вошедшего организатора, если он есть. */
+    protected function currentOwnerId(Request $request): ?int
+    {
+        $id = $request->user()?->getAuthIdentifier();
+
+        return is_numeric($id) ? (int) $id : null;
+    }
+
     protected function backToManage(Request $request, ?string $message = null): RedirectResponse
     {
         $response = to_route('manage.show', ['token' => $request->route('token')]);

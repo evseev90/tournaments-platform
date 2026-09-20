@@ -1,12 +1,15 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ManageController;
+use App\Http\Controllers\MyTournamentsController;
 use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\StageController;
+use App\Http\Controllers\StatisticsController;
 use App\Http\Middleware\ResolveOrganizerTournament;
 use Illuminate\Support\Facades\Route;
 
@@ -15,11 +18,26 @@ Route::post('/tournaments', [HomeController::class, 'store'])->middleware('throt
 
 Route::get('/t/{slug}', [PublicController::class, 'show'])->name('public.show');
 
+Route::middleware('guest')->group(function (): void {
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+});
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
+Route::get('/my', [MyTournamentsController::class, 'index'])->middleware('auth')->name('my.index');
+
+Route::middleware('auth')->group(function (): void {
+    Route::get('/players', [StatisticsController::class, 'index'])->name('players.index');
+    Route::get('/players/{competitor}', [StatisticsController::class, 'show'])->name('players.show');
+});
+
 Route::prefix('/manage/{token}')->middleware(ResolveOrganizerTournament::class)->name('manage.')->group(function (): void {
     Route::get('/', [ManageController::class, 'show'])->name('show');
     Route::patch('/', [ManageController::class, 'rename'])->name('rename');
     Route::patch('/rules', [ManageController::class, 'rules'])->name('rules');
     Route::post('/finish', [ManageController::class, 'finish'])->name('finish');
+    Route::post('/claim', [MyTournamentsController::class, 'claim'])->middleware('auth')->name('claim');
 
     Route::post('/participants', [ParticipantController::class, 'store'])->name('participants.store');
     Route::post('/participants/reorder', [ParticipantController::class, 'reorder'])->name('participants.reorder');

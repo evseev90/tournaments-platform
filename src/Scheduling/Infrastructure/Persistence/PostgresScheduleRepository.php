@@ -9,8 +9,8 @@ use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Query\Builder;
 use stdClass;
 use Tournaments\Scheduling\Domain\Assignment;
-use Tournaments\Scheduling\Domain\CompetitorId;
 use Tournaments\Scheduling\Domain\MatchId;
+use Tournaments\Scheduling\Domain\ParticipantRef;
 use Tournaments\Scheduling\Domain\Schedule;
 use Tournaments\Scheduling\Domain\ScheduleId;
 use Tournaments\Scheduling\Domain\ScheduleRepository;
@@ -98,8 +98,8 @@ final readonly class PostgresScheduleRepository implements ScheduleRepository
                 venueId: VenueId::fromString($a->venue_id),
                 startsAt: new DateTimeImmutable($a->starts_at),
                 minutes: (int) $a->minutes,
-                home: $a->home_id === null ? null : CompetitorId::fromString($a->home_id),
-                away: $a->away_id === null ? null : CompetitorId::fromString($a->away_id),
+                home: $a->home_id === null ? null : ParticipantRef::fromString($a->home_id),
+                away: $a->away_id === null ? null : ParticipantRef::fromString($a->away_id),
             ))
             ->all();
 

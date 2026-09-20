@@ -17,8 +17,8 @@ final class Assignment
         public private(set) VenueId $venueId,
         public private(set) DateTimeImmutable $startsAt,
         public private(set) int $minutes,
-        public private(set) ?CompetitorId $home = null,
-        public private(set) ?CompetitorId $away = null,
+        public private(set) ?ParticipantRef $home = null,
+        public private(set) ?ParticipantRef $away = null,
     ) {}
 
     public function endsAt(): DateTimeImmutable
@@ -32,13 +32,13 @@ final class Assignment
         $this->startsAt = $startsAt;
     }
 
-    public function withCompetitors(?CompetitorId $home, ?CompetitorId $away): void
+    public function withParticipants(?ParticipantRef $home, ?ParticipantRef $away): void
     {
         $this->home = $home;
         $this->away = $away;
     }
 
-    public function involves(?CompetitorId $competitor): bool
+    public function involves(?ParticipantRef $competitor): bool
     {
         return $competitor !== null && ($competitor->equals($this->home) || $competitor->equals($this->away));
     }

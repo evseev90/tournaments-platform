@@ -23,6 +23,7 @@ final readonly class TournamentView
         public string $status,
         public string $publicSlug,
         public string $createdAt,
+        public ?int $ownerId,
         public array $participants,
         public array $stages,
     ) {}

@@ -35,7 +35,12 @@ final class HomeController extends Controller
             'rules.min_margin' => ['required_with:rules', 'integer', 'between:1,5'],
         ]);
 
-        $created = $handler(new CreateTournament($data['name'], $data['sport'], $data['rules'] ?? null));
+        $created = $handler(new CreateTournament(
+            $data['name'],
+            $data['sport'],
+            $data['rules'] ?? null,
+            ownerId: $this->currentOwnerId($request),
+        ));
 
         return to_route('manage.show', ['token' => $created->adminToken]);
     }

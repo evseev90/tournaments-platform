@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tournaments\Scheduling\Domain\Planning;
 
-use Tournaments\Scheduling\Domain\CompetitorId;
 use Tournaments\Scheduling\Domain\MatchId;
+use Tournaments\Scheduling\Domain\ParticipantRef;
 
 /**
  * Матч глазами расписания. Контекст «Турнир» знает про сетки и счёт,
@@ -18,12 +18,12 @@ final readonly class PlannableMatch
         public MatchId $id,
         public int $order,
         public int $sequence,
-        public ?CompetitorId $home,
-        public ?CompetitorId $away,
+        public ?ParticipantRef $home,
+        public ?ParticipantRef $away,
         public array $dependsOn = [],
     ) {}
 
-    public function hasBothCompetitors(): bool
+    public function hasBothParticipants(): bool
     {
         return $this->home !== null && $this->away !== null;
     }

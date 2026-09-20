@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tournaments\Tournament\Domain\Stage;
 
+use DateTimeImmutable;
 use Tournaments\Tournament\Domain\Scoring\MatchOutcome;
 use Tournaments\Tournament\Domain\Scoring\Side;
 use Tournaments\Tournament\Domain\Tournament\ParticipantId;
@@ -25,7 +26,13 @@ final class Fixture
         public readonly ?FixtureSlot $nextWin = null,
         public readonly ?FixtureSlot $nextLose = null,
         public readonly ?BracketSide $bracket = null,
+        private ?DateTimeImmutable $finishedAt = null,
     ) {}
+
+    public function finishedAt(): ?DateTimeImmutable
+    {
+        return $this->finishedAt;
+    }
 
     public function participant(Side $side): ?ParticipantId
     {
@@ -123,14 +130,16 @@ final class Fixture
     }
 
     /** @internal только для Stage */
-    public function finish(MatchOutcome $outcome): void
+    public function finish(MatchOutcome $outcome, DateTimeImmutable $at): void
     {
         $this->outcome = $outcome;
+        $this->finishedAt = $at;
     }
 
     /** @internal только для Stage */
     public function reopen(): void
     {
         $this->outcome = null;
+        $this->finishedAt = null;
     }
 }

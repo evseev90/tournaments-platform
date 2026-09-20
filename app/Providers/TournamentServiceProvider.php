@@ -14,8 +14,10 @@ use Tournaments\Shared\Application\TransactionManager;
 use Tournaments\Shared\Infrastructure\Laravel\DatabaseTransactionManager;
 use Tournaments\Shared\Infrastructure\Laravel\LaravelEventDispatcher;
 use Tournaments\Shared\Infrastructure\Laravel\SystemClock;
+use Tournaments\Tournament\Application\Query\OwnedTournaments;
 use Tournaments\Tournament\Domain\Stage\StageRepository;
 use Tournaments\Tournament\Domain\Tournament\TournamentRepository;
+use Tournaments\Tournament\Infrastructure\Persistence\PostgresOwnedTournaments;
 use Tournaments\Tournament\Infrastructure\Persistence\PostgresStageRepository;
 use Tournaments\Tournament\Infrastructure\Persistence\PostgresTournamentRepository;
 
@@ -31,5 +33,6 @@ final class TournamentServiceProvider extends ServiceProvider
         $this->app->bind(TransactionManager::class, static fn ($app) => new DatabaseTransactionManager($app->make(ConnectionInterface::class)));
         $this->app->bind(TournamentRepository::class, static fn ($app) => new PostgresTournamentRepository($app->make(ConnectionInterface::class)));
         $this->app->bind(StageRepository::class, static fn ($app) => new PostgresStageRepository($app->make(ConnectionInterface::class)));
+        $this->app->bind(OwnedTournaments::class, static fn ($app) => new PostgresOwnedTournaments($app->make(ConnectionInterface::class)));
     }
 }

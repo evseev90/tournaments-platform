@@ -9,7 +9,7 @@ use Tournaments\Scheduling\Domain\ScheduleRepository;
 use Tournaments\Scheduling\Domain\TournamentRef;
 use Tournaments\Shared\Application\TransactionManager;
 
-final readonly class RefreshScheduleCompetitorsHandler
+final readonly class RefreshScheduleParticipantsHandler
 {
     use ScheduleCommandSupport;
 
@@ -19,7 +19,7 @@ final readonly class RefreshScheduleCompetitorsHandler
         private TransactionManager $transaction,
     ) {}
 
-    public function __invoke(RefreshScheduleCompetitors $command): void
+    public function __invoke(RefreshScheduleParticipants $command): void
     {
         $schedule = $this->existing($this->schedules, $command->tournamentId);
         if ($schedule === null || ! $schedule->isPlanned()) {
@@ -30,7 +30,7 @@ final readonly class RefreshScheduleCompetitorsHandler
 
         $this->transaction->transactional(function () use ($command, $matches): void {
             $schedule = $this->existing($this->schedules, $command->tournamentId);
-            $schedule?->refreshCompetitors($matches);
+            $schedule?->refreshParticipants($matches);
             if ($schedule !== null) {
                 $this->schedules->save($schedule);
             }

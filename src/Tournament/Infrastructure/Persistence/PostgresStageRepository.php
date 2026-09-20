@@ -80,6 +80,7 @@ final readonly class PostgresStageRepository implements StageRepository
             'away_id' => $f->away()?->value,
             'outcome' => $f->outcome() === null ? null : json_encode($f->outcome()->toArray(), JSON_THROW_ON_ERROR),
             'bye' => $f->isBye(),
+            'finished_at' => $f->finishedAt()?->format(DATE_ATOM),
             'next_win_fixture_id' => $f->nextWin?->fixtureId->value,
             'next_win_side' => $f->nextWin?->side->value,
             'next_lose_fixture_id' => $f->nextLose?->fixtureId->value,
@@ -87,7 +88,7 @@ final readonly class PostgresStageRepository implements StageRepository
         ], $stage->fixtures());
 
         if ($rows !== []) {
-            $this->fixtures()->upsert($rows, ['id'], ['home_id', 'away_id', 'outcome', 'bye']);
+            $this->fixtures()->upsert($rows, ['id'], ['home_id', 'away_id', 'outcome', 'bye', 'finished_at']);
         }
     }
 
@@ -112,6 +113,7 @@ final readonly class PostgresStageRepository implements StageRepository
                 outcome: $f->outcome === null ? null : ScoringRulesFactory::outcomeFromArray(Json::map($f->outcome)),
                 bye: (bool) $f->bye,
                 bracket: $f->bracket === null ? null : BracketSide::from($f->bracket),
+                finishedAt: $f->finished_at === null ? null : new DateTimeImmutable($f->finished_at),
                 nextWin: self::slot($f->next_win_fixture_id, $f->next_win_side),
                 nextLose: self::slot($f->next_lose_fixture_id, $f->next_lose_side),
             ))

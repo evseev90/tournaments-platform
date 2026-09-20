@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('fixtures', function (Blueprint $table): void {
+            // Когда внесён результат: нужно статистике, чтобы показывать последние матчи.
+            $table->timestampTz('finished_at')->nullable();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('fixtures', function (Blueprint $table): void {
+            $table->dropColumn('finished_at');
+        });
+    }
+};

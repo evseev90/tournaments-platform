@@ -1,5 +1,5 @@
 <script setup>
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import CopyField from '../../Components/CopyField.vue';
 import PhaseList from '../../Components/PhaseList.vue';
@@ -20,6 +20,14 @@ const props = defineProps({
     sports: { type: Array, required: true },
     urls: { type: Object, required: true },
 });
+
+const page = usePage();
+const currentUser = computed(() => page.props.auth?.user ?? null);
+const canClaim = computed(() => currentUser.value !== null && props.tournament.ownerId === null);
+
+function claim() {
+    router.post(`${props.urls.manage}/claim`, {}, { preserveScroll: true });
+}
 
 const stages = computed(() => props.tournament.stages);
 const stage = computed(() => stages.value[0] ?? null);
@@ -100,6 +108,13 @@ const playableMatches = computed(
                 </button>
                 <button v-if="stageCompleted" type="button" class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700" @click="finish">Завершить турнир</button>
             </div>
+        </div>
+
+        <div v-if="canClaim" class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/50 px-5 py-4">
+            <span class="text-sm text-slate-600">Турнир создан без аккаунта. Сохраните его себе, чтобы он попал в список и в статистику.</span>
+            <button type="button" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700" @click="claim">
+                Сохранить в мой аккаунт
+            </button>
         </div>
 
         <section class="mb-6 grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 sm:grid-cols-2">

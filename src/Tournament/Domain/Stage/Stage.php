@@ -157,7 +157,7 @@ final class Stage
             throw new InvalidOutcome('Elimination matches cannot end in a draw');
         }
 
-        $fixture->finish($outcome);
+        $fixture->finish($outcome, $now);
         $this->advance($fixture);
         $this->recordEvent(new FixtureResultRecorded($this->tournamentId, $this->id, $fixtureId, $outcome, $now));
 
@@ -167,12 +167,21 @@ final class Stage
         }
     }
 
-    /** Отменяет результат, если участники ещё не сыграли следующие матчи. */
+    /**
+     * Отменяет результат, пока он ни на что не повлиял.
+     *
+     * В сетках это значит «следующий матч ещё не сыгран»: победитель никуда не ушёл.
+     * Там, где пары составляются по таблице, влияние шире: как только следующий тур
+     * разведён, менять его основание нельзя, иначе пары перестанут соответствовать очкам.
+     */
     public function revertResult(FixtureId $fixtureId, DateTimeImmutable $now): void
     {
         $fixture = $this->fixture($fixtureId);
         if (! $fixture->isFinished()) {
             throw new CannotRevertResult(sprintf('Fixture %s has no result to revert', $fixtureId));
+        }
+        if ($this->format->isPairedByRound() && $fixture->round < $this->roundsCount()) {
+            throw new CannotRevertResult('Следующий тур уже составлен по этому результату');
         }
 
         foreach ([$fixture->nextWin, $fixture->nextLose] as $slot) {

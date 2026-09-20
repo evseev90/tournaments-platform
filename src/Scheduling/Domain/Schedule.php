@@ -8,8 +8,8 @@ use DateTimeImmutable;
 use Tournaments\Scheduling\Domain\Event\MatchMoved;
 use Tournaments\Scheduling\Domain\Event\ScheduleCleared;
 use Tournaments\Scheduling\Domain\Event\SchedulePlanned;
-use Tournaments\Scheduling\Domain\Exception\CompetitorBusy;
 use Tournaments\Scheduling\Domain\Exception\MatchNotScheduled;
+use Tournaments\Scheduling\Domain\Exception\ParticipantBusy;
 use Tournaments\Scheduling\Domain\Exception\VenueBusy;
 use Tournaments\Scheduling\Domain\Exception\VenueNotFound;
 use Tournaments\Scheduling\Domain\Planning\PlannableMatch;
@@ -128,7 +128,7 @@ final class Schedule
 
         $endsAt = $startsAt->modify(sprintf('+%d minutes', $assignment->minutes));
         $this->assertVenueFree($venueId, $startsAt, $endsAt, $matchId);
-        $this->assertCompetitorsFree($assignment, $startsAt, $endsAt);
+        $this->assertParticipantsFree($assignment, $startsAt, $endsAt);
 
         $assignment->moveTo($venueId, $startsAt);
         $this->recordEvent(new MatchMoved($this->tournament, $this->id, $matchId, $startsAt, $now));
@@ -145,11 +145,11 @@ final class Schedule
      *
      * @param  list<PlannableMatch>  $matches
      */
-    public function refreshCompetitors(array $matches): void
+    public function refreshParticipants(array $matches): void
     {
         foreach ($matches as $match) {
             $assignment = $this->assignments[$match->id->value] ?? null;
-            $assignment?->withCompetitors($match->home, $match->away);
+            $assignment?->withParticipants($match->home, $match->away);
         }
     }
 
@@ -203,7 +203,7 @@ final class Schedule
         }
     }
 
-    private function assertCompetitorsFree(Assignment $moving, DateTimeImmutable $startsAt, DateTimeImmutable $endsAt): void
+    private function assertParticipantsFree(Assignment $moving, DateTimeImmutable $startsAt, DateTimeImmutable $endsAt): void
     {
         foreach ($this->assignments as $other) {
             if ($other->matchId->equals($moving->matchId)) {
@@ -213,7 +213,7 @@ final class Schedule
                 continue;
             }
             if ($other->involves($moving->home) || $other->involves($moving->away)) {
-                throw new CompetitorBusy('Участник в это время уже играет другой матч');
+                throw new ParticipantBusy('Участник в это время уже играет другой матч');
             }
         }
     }

@@ -11,5 +11,6 @@ final readonly class CreateTournament
         public string $name,
         public string $sport,
         public ?array $rules = null,
+        public ?int $ownerId = null,
     ) {}
 }

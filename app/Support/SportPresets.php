@@ -24,6 +24,11 @@ final class SportPresets
         ], Sport::cases());
     }
 
+    public static function labelOf(string $sport): string
+    {
+        return self::label(Sport::from($sport));
+    }
+
     public static function label(Sport $sport): string
     {
         return match ($sport) {

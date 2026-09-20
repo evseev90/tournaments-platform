@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tournaments\Scheduling\Infrastructure\Tournament;
 
-use Tournaments\Scheduling\Domain\CompetitorId;
 use Tournaments\Scheduling\Domain\MatchId;
+use Tournaments\Scheduling\Domain\ParticipantRef;
 use Tournaments\Scheduling\Domain\Planning\PlannableMatch;
 use Tournaments\Scheduling\Domain\Planning\PlannableMatches;
 use Tournaments\Scheduling\Domain\TournamentRef;
@@ -60,8 +60,8 @@ final readonly class TournamentPlannableMatches implements PlannableMatches
             id: MatchId::fromString($fixture->id->value),
             order: $roundOffset + $fixture->round,
             sequence: $fixture->position,
-            home: $fixture->home() === null ? null : CompetitorId::fromString($fixture->home()->value),
-            away: $fixture->away() === null ? null : CompetitorId::fromString($fixture->away()->value),
+            home: $fixture->home() === null ? null : ParticipantRef::fromString($fixture->home()->value),
+            away: $fixture->away() === null ? null : ParticipantRef::fromString($fixture->away()->value),
             dependsOn: $dependencies[$fixture->id->value] ?? [],
         ), $playable);
     }

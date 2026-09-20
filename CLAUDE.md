@@ -15,6 +15,11 @@ docker compose exec node npm ...
 Или через `make`: `make test`, `make test-domain`, `make stan`, `make lint`, `make check`.
 Приложение на http://localhost:8000. В оболочке выставлен прокси, для curl к localhost добавляй `--noproxy '*'`.
 
+## Единый язык
+
+Термины живут в `CONTEXT.md` каждого контекста, карта — в `CONTEXT-MAP.md`. Меняешь язык — правь глоссарий
+в том же коммите. Механика форматов и алгоритмов — в `docs/`, решения с ценой — в `docs/adr/`.
+
 ## Архитектура
 
 - `src/` — доменный код по ограниченным контекстам, корневой namespace `Tournaments\`.
