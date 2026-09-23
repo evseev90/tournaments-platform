@@ -27,14 +27,14 @@ const phases = computed(() => {
 </script>
 
 <template>
-    <div class="space-y-8">
+    <div class="space-y-10">
         <section v-for="group in phases" :key="group.phase" class="space-y-6">
-            <h2 v-if="group.title" class="text-lg font-semibold tracking-tight">{{ group.title }}</h2>
+            <h2 v-if="group.title" class="headline border-b-2 border-ink pb-2 text-xl">{{ group.title }}</h2>
 
             <div :class="group.stages.length > 1 ? 'grid gap-6 lg:grid-cols-2' : ''">
                 <div
                     v-for="stage in group.stages" :key="stage.id"
-                    :class="group.stages.length > 1 ? 'rounded-xl border border-slate-100 p-4' : ''"
+                    :class="group.stages.length > 1 ? 'rounded-sm border border-line p-4' : ''"
                 >
                     <StageView
                         :tournament="tournament" :stage="stage" :dense="group.stages.length > 1"

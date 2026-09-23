@@ -62,3 +62,17 @@ docker compose exec node npm ...
 - Перед завершением задачи: `make check` должен проходить.
 - PHPStan уровень 9 на `app/` и `src/`.
 - Язык интерфейса и документации — русский. Код, имена, коммиты — английский.
+
+## Agent skills
+
+### Issue tracker
+
+Задачи и спеки — markdown-файлы в `.scratch/<feature>/`, remote у репозитория нет. См. `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Пять стандартных меток: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. См. `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Мультиконтекст: `CONTEXT-MAP.md` → `src/<Context>/CONTEXT.md`, ADR в `docs/adr/`. См. `docs/agents/domain.md`.

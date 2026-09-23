@@ -19,31 +19,39 @@ const props = defineProps({
 
 const names = computed(() => Object.fromEntries(props.tournament.participants.map((p) => [p.id, p.name])));
 const opened = ref(null);
+const pairing = ref(false);
 const total = computed(() => props.stage.rounds.flatMap((r) => r.fixtures).filter((f) => f.status !== 'bye'));
 const done = computed(() => total.value.filter((f) => f.status === 'finished').length);
 const isSwiss = computed(() => props.stage.format === 'swiss');
 
 function pairNextRound() {
-    router.post(props.pairUrl, {}, { preserveScroll: true });
+    pairing.value = true;
+    router.post(props.pairUrl, {}, {
+        preserveScroll: true,
+        onFinish: () => { pairing.value = false; },
+    });
 }
 </script>
 
 <template>
     <div class="space-y-6">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-            <h2 class="font-semibold">{{ stage.name ?? formatLabels[stage.format] }}</h2>
-            <span class="text-sm text-slate-500">
-                <template v-if="isSwiss">Тур {{ stage.rounds.length }} из {{ stage.plannedRounds }} · </template>
-                Сыграно {{ done }} из {{ total.length }}
+        <div class="flex flex-wrap items-end justify-between gap-2 border-b border-line pb-2">
+            <h2 class="headline text-lg">{{ stage.name ?? formatLabels[stage.format] }}</h2>
+            <span class="font-mono text-xs text-ink-3">
+                <template v-if="isSwiss">тур {{ stage.rounds.length }}/{{ stage.plannedRounds }} · </template>
+                сыграно {{ done }}/{{ total.length }}
             </span>
         </div>
 
         <StandingsTable v-if="stage.standings" :standings="stage.standings" :names="names" :show-buchholz="isSwiss" />
 
-        <div v-if="editable && stage.awaitsNextRound && pairUrl" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50/50 px-4 py-3">
-            <span class="text-sm text-slate-600">Тур сыгран. Соперники следующего тура подбираются по набранным очкам.</span>
-            <button type="button" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700" @click="pairNextRound">
-                Составить тур {{ stage.rounds.length + 1 }}
+        <div
+            v-if="editable && stage.awaitsNextRound && pairUrl"
+            class="flex flex-wrap items-center justify-between gap-3 rounded-sm border-l-[3px] border-accent bg-accent-soft px-4 py-3"
+        >
+            <span class="text-sm text-ink-2">Тур сыгран. Соперники следующего тура подбираются по набранным очкам.</span>
+            <button type="button" class="btn btn-primary btn-sm" :disabled="pairing" :aria-busy="pairing" @click="pairNextRound">
+                {{ pairing ? 'Составляем тур…' : `Составить тур ${stage.rounds.length + 1}` }}
             </button>
         </div>
 

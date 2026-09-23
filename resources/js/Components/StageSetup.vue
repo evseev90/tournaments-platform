@@ -68,73 +68,70 @@ function generate() {
 </script>
 
 <template>
-    <section class="rounded-2xl border border-slate-200 bg-white">
-        <header class="border-b border-slate-100 px-5 py-4">
-            <h2 class="font-semibold">Формат</h2>
+    <section class="panel overflow-hidden">
+        <header class="border-b border-line px-5 py-4">
+            <h2 class="headline text-lg">Формат</h2>
         </header>
         <form class="space-y-4 px-5 py-4" @submit.prevent="generate">
-            <div class="grid gap-3">
+            <div class="grid gap-2">
                 <label
                     v-for="f in formats" :key="f.value"
-                    class="cursor-pointer rounded-xl border p-4 transition"
-                    :class="form.format === f.value ? 'border-emerald-500 bg-emerald-50/50 ring-2 ring-emerald-100' : 'border-slate-200 hover:border-slate-300'"
+                    class="cursor-pointer rounded-sm border border-l-[3px] p-4 transition"
+                    :class="form.format === f.value ? 'border-line border-l-accent bg-accent-soft' : 'border-line border-l-transparent hover:border-l-line'"
                 >
                     <input v-model="form.format" type="radio" :value="f.value" class="sr-only" />
-                    <div class="font-medium">{{ f.label }}</div>
-                    <div class="mt-1 text-xs text-slate-500">{{ f.description }}</div>
+                    <div class="font-display text-[15px] font-medium tracking-[0.06em] uppercase">{{ f.label }}</div>
+                    <div class="mt-1 text-xs leading-relaxed text-ink-2">{{ f.description }}</div>
                 </label>
             </div>
 
             <label v-if="form.format === 'single_elimination'" class="flex items-center gap-2 text-sm">
-                <input v-model="form.settings.third_place_match" type="checkbox" class="rounded border-slate-300 text-emerald-600" />
+                <input v-model="form.settings.third_place_match" type="checkbox" class="size-4 rounded-xs accent-[var(--c-accent)]" />
                 Матч за третье место
             </label>
 
-            <p v-else-if="form.format === 'double_elimination'" class="text-xs text-slate-400">
+            <p v-else-if="form.format === 'double_elimination'" class="text-xs leading-relaxed text-ink-3">
                 Победитель нижней сетки играет один матч гранд-финала: переигровки при его победе не будет.
             </p>
 
             <template v-else-if="isSwiss">
                 <label class="flex flex-wrap items-center gap-2 text-sm">
-                    Туров:
-                    <select v-model.number="form.settings.rounds" class="rounded-lg border border-slate-200 px-2 py-1 text-sm">
+                    <span class="label">Туров</span>
+                    <select v-model.number="form.settings.rounds" class="field field-sm w-auto">
                         <option :value="0">по числу участников ({{ suggestedRounds }})</option>
                         <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
                     </select>
                 </label>
-                <p class="text-xs text-slate-400">Пары каждого тура составляются после предыдущего: соперники подбираются по набранным очкам.</p>
+                <p class="text-xs leading-relaxed text-ink-3">Пары каждого тура составляются после предыдущего: соперники подбираются по набранным очкам.</p>
             </template>
 
             <template v-else>
                 <label v-if="isGroups" class="flex flex-wrap items-center gap-2 text-sm">
-                    Групп:
-                    <select v-model.number="form.groups" class="rounded-lg border border-slate-200 px-2 py-1 text-sm">
+                    <span class="label">Групп</span>
+                    <select v-model.number="form.groups" class="field field-sm w-auto">
                         <option v-for="n in groupOptions" :key="n" :value="n">{{ n }}</option>
                     </select>
-                    <span v-if="enough" class="text-xs text-slate-400">{{ groupSizes }} в группе</span>
+                    <span v-if="enough" class="font-mono text-[11px] text-ink-3">{{ groupSizes }} в группе</span>
                 </label>
-                <label class="flex items-center gap-2 text-sm">
-                    Кругов:
-                    <select v-model.number="form.settings.legs" class="rounded-lg border border-slate-200 px-2 py-1 text-sm">
+                <label class="flex flex-wrap items-center gap-2 text-sm">
+                    <span class="label">Кругов</span>
+                    <select v-model.number="form.settings.legs" class="field field-sm w-auto">
                         <option :value="1">один</option>
                         <option :value="2">два, со сменой сторон</option>
                     </select>
                 </label>
             </template>
 
-            <div class="flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
-                <span class="text-xs text-slate-400">
+            <div class="flex items-center justify-between gap-3 border-t border-line pt-4">
+                <span class="font-mono text-[11px] text-ink-3">
                     <template v-if="enough">{{ pluralize(matches, 'матч', 'матча', 'матчей') }}<template v-if="isGroups"> в группах</template></template>
-                    <template v-else>Нужно минимум {{ selected.min }} участника</template>
+                    <template v-else>нужно минимум {{ selected.min }} участника</template>
                 </span>
-                <button
-                    type="submit" :disabled="!enough || form.processing"
-                    class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-40"
-                >
-                    {{ isGroups ? 'Развести по группам' : isSwiss ? 'Начать первый тур' : 'Сгенерировать сетку' }}
+                <button type="submit" :disabled="!enough || form.processing" class="btn btn-primary btn-sm">
+                    {{ isGroups ? 'По группам' : isSwiss ? 'Первый тур' : 'Сгенерировать' }}
                 </button>
             </div>
-            <p class="text-xs text-slate-400">После генерации состав замораживается. Пока нет результатов, этап можно отменить.</p>
+            <p class="text-xs leading-relaxed text-ink-3">После генерации состав замораживается. Пока нет результатов, этап можно отменить.</p>
         </form>
     </section>
 </template>

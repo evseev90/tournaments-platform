@@ -33,28 +33,45 @@ const setScores = computed(() => props.fixture.outcome?.type === 'sets' ? props.
 <template>
     <component
         :is="clickable ? 'button' : 'div'" :type="clickable ? 'button' : undefined"
-        class="relative w-full rounded-xl border bg-white text-left shadow-sm transition"
+        class="relative flex h-full w-full flex-col rounded-sm border bg-surface text-left transition"
         :class="[
-            fixture.status === 'bye' ? 'border-dashed border-slate-200 opacity-70' : 'border-slate-200',
-            clickable ? 'cursor-pointer hover:border-emerald-400 hover:shadow' : '',
-            fixture.status === 'ready' && editable ? 'ring-1 ring-emerald-100' : '',
+            inBracket ? '' : 'overflow-hidden',
+            fixture.status === 'bye' ? 'border-dashed border-line opacity-70' : 'border-line',
+            fixture.status === 'ready' && editable ? 'border-accent' : '',
+            clickable ? 'cursor-pointer hover:border-accent hover:bg-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent' : '',
         ]"
         @click="clickable && emit('open', fixture)"
     >
-        <div v-for="(row, index) in rows" :key="row.side" class="flex items-center gap-2 px-3 py-1.5" :class="index === 0 ? 'border-b border-slate-100' : ''">
-            <span class="min-w-0 flex-1 truncate text-sm" :class="row.name ? (row.winner ? 'font-semibold text-slate-900' : fixture.status === 'finished' ? 'text-slate-400' : 'text-slate-700') : 'italic text-slate-300'">
+        <div
+            v-for="(row, index) in rows" :key="row.side"
+            class="flex flex-1 items-center gap-2 pr-3"
+            :class="index === 0 ? 'border-b border-line' : ''"
+        >
+            <!-- Победителя держит грань слева: она читается быстрее, чем начертание. -->
+            <span class="w-[3px] shrink-0 self-stretch" :class="row.winner ? 'bg-win' : ''" />
+            <span
+                class="min-w-0 flex-1 truncate py-1.5 text-sm leading-5"
+                :class="row.name
+                    ? (row.winner ? 'font-semibold text-ink' : fixture.status === 'finished' ? 'text-ink-2' : 'text-ink')
+                    : 'italic text-ink-3'"
+            >
                 {{ row.name ?? (fixture.status === 'bye' ? '—' : 'ожидание') }}
             </span>
-            <span v-if="row.walkover" class="text-[10px] font-medium uppercase text-emerald-700">тех.</span>
-            <span v-else-if="row.sets !== null || row.points !== null" class="w-5 text-right text-sm font-semibold tabular-nums" :class="row.winner ? 'text-emerald-700' : 'text-slate-400'">
+            <span v-if="row.walkover" class="eyebrow shrink-0 text-win">тех.</span>
+            <span
+                v-else-if="row.sets !== null || row.points !== null"
+                class="shrink-0 font-mono text-[17px] font-semibold leading-none"
+                :class="row.winner ? 'text-win' : 'text-ink-2'"
+            >
                 {{ row.sets ?? row.points }}
             </span>
-            <span v-else-if="fixture.status === 'bye' && row.name" class="text-[10px] uppercase text-slate-400">проход</span>
+            <span v-else-if="fixture.status === 'bye' && row.name" class="eyebrow shrink-0">проход</span>
         </div>
+
         <div
             v-if="setScores.length"
-            class="px-3 text-[11px] tabular-nums text-slate-400"
-            :class="inBracket ? 'absolute inset-x-0 top-full truncate pt-1' : 'border-t border-slate-100 py-1'"
+            class="px-3 font-mono text-[11px] text-ink-3"
+            :class="inBracket ? 'absolute inset-x-0 top-full truncate pt-1' : 'border-t border-line py-1'"
         >
             {{ setScores.map(([h, a]) => `${h}:${a}`).join(' · ') }}
         </div>

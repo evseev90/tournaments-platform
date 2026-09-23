@@ -25,13 +25,12 @@ function select(value) {
 <template>
     <Head title="Статистика" />
     <AppLayout>
-        <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-            <h1 class="text-2xl font-semibold tracking-tight">Статистика</h1>
-            <div class="flex gap-1 rounded-xl bg-slate-100 p-1">
+        <div class="mb-6 flex flex-wrap items-end justify-between gap-3 border-b-2 border-ink pb-4">
+            <h1 class="headline text-4xl">Статистика</h1>
+            <div class="seg" role="tablist">
                 <button
-                    v-for="tab in tabs" :key="tab.label" type="button"
-                    class="rounded-lg px-3 py-1.5 text-sm font-medium transition"
-                    :class="type === tab.value ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'"
+                    v-for="tab in tabs" :key="tab.label" type="button" role="tab"
+                    class="seg-btn" :aria-selected="type === tab.value"
                     @click="select(tab.value)"
                 >
                     {{ tab.label }}
@@ -39,34 +38,34 @@ function select(value) {
             </div>
         </div>
 
-        <p v-if="!competitors.length" class="rounded-2xl border border-dashed border-slate-200 bg-white px-5 py-10 text-center text-sm text-slate-400">
+        <p v-if="!competitors.length" class="rounded-sm border border-dashed border-line px-5 py-12 text-center text-sm text-ink-3">
             Статистика копится по турнирам вашего аккаунта. Сыграйте хотя бы один матч.
         </p>
 
-        <div v-else class="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+        <div v-else class="panel overflow-x-auto p-5">
             <table class="w-full text-sm">
-                <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                    <tr>
-                        <th class="px-3 py-2 text-left font-medium">Участник</th>
-                        <th class="px-3 py-2 text-center font-medium" title="Турниры">Т</th>
-                        <th class="px-3 py-2 text-center font-medium" title="Матчи">М</th>
-                        <th class="px-3 py-2 text-center font-medium" title="Победы">В</th>
-                        <th class="px-3 py-2 text-center font-medium" title="Поражения">П</th>
-                        <th v-if="hasSets" class="hidden px-3 py-2 text-center font-medium sm:table-cell">Партии</th>
-                        <th class="px-3 py-2 text-right font-medium">Побед, %</th>
+                <thead>
+                    <tr class="border-b-2 border-ink">
+                        <th class="label py-2 pr-3 text-left">Участник</th>
+                        <th class="label px-3 py-2 text-right" title="Турниры">Т</th>
+                        <th class="label px-3 py-2 text-right" title="Матчи">М</th>
+                        <th class="label px-3 py-2 text-right" title="Победы">В</th>
+                        <th class="label px-3 py-2 text-right" title="Поражения">П</th>
+                        <th v-if="hasSets" class="label hidden px-3 py-2 text-right sm:table-cell">Партии</th>
+                        <th class="label py-2 pl-3 text-right">Побед, %</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
-                    <tr v-for="row in competitors" :key="row.id" class="hover:bg-slate-50/60">
-                        <td class="px-3 py-2">
-                            <Link :href="`/players/${row.id}`" class="font-medium hover:text-emerald-700">{{ row.name }}</Link>
+                <tbody>
+                    <tr v-for="row in competitors" :key="row.id" class="border-b border-line transition hover:bg-sunken">
+                        <td class="py-2.5 pr-3">
+                            <Link :href="`/players/${row.id}`" class="font-medium transition hover:text-accent">{{ row.name }}</Link>
                         </td>
-                        <td class="px-3 py-2 text-center tabular-nums text-slate-500">{{ row.tournaments }}</td>
-                        <td class="px-3 py-2 text-center tabular-nums">{{ row.matches }}</td>
-                        <td class="px-3 py-2 text-center tabular-nums">{{ row.wins }}</td>
-                        <td class="px-3 py-2 text-center tabular-nums">{{ row.losses }}</td>
-                        <td v-if="hasSets" class="hidden px-3 py-2 text-center tabular-nums text-slate-500 sm:table-cell">{{ row.setsWon }}:{{ row.setsLost }}</td>
-                        <td class="px-3 py-2 text-right font-semibold tabular-nums">{{ row.winRate }}</td>
+                        <td class="px-3 py-2.5 text-right font-mono text-[13px] text-ink-3">{{ row.tournaments }}</td>
+                        <td class="px-3 py-2.5 text-right font-mono text-[13px] text-ink-2">{{ row.matches }}</td>
+                        <td class="px-3 py-2.5 text-right font-mono text-[13px] text-win">{{ row.wins }}</td>
+                        <td class="px-3 py-2.5 text-right font-mono text-[13px] text-ink-2">{{ row.losses }}</td>
+                        <td v-if="hasSets" class="hidden px-3 py-2.5 text-right font-mono text-[13px] text-ink-3 sm:table-cell">{{ row.setsWon }}:{{ row.setsLost }}</td>
+                        <td class="py-2.5 pl-3 text-right font-mono text-[15px] font-semibold">{{ row.winRate }}</td>
                     </tr>
                 </tbody>
             </table>

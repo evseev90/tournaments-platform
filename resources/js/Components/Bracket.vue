@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { roundLabel } from '../lib/labels';
 import { CARD_HEIGHT, CARD_WIDTH, THIRD_PLACE_GAP, layoutBracket } from '../lib/bracketLayout';
 import FixtureCard from './FixtureCard.vue';
+import BracketRoundsList from './BracketRoundsList.vue';
 
 const props = defineProps({
     stage: { type: Object, required: true },
@@ -12,15 +13,29 @@ const props = defineProps({
 const emit = defineEmits(['open']);
 
 const layout = computed(() => layoutBracket(props.stage));
+const mobileRounds = computed(() => {
+    const rounds = props.stage.rounds.map((round, index) => ({
+        number: round.number,
+        label: roundLabel(props.stage, round.number),
+        fixtures: index === props.stage.rounds.length - 1
+            ? round.fixtures.filter((fixture) => fixture.position === 0)
+            : round.fixtures,
+    }));
+    if (layout.value.thirdPlace) {
+        rounds.push({ number: 'third-place', label: 'Матч за 3 место', fixtures: [layout.value.thirdPlace.fixture] });
+    }
+    return rounds.filter((round) => round.fixtures.length);
+});
 </script>
 
 <template>
-    <div class="overflow-x-auto pb-2">
+    <BracketRoundsList :rounds="mobileRounds" :names="names" :editable="editable" class="sm:hidden" @open="emit('open', $event)" />
+    <div class="hidden overflow-x-auto pb-2 sm:block">
         <div class="min-w-max">
             <div class="relative mb-3 h-4" :style="{ width: `${layout.width}px` }">
                 <h3
                     v-for="column in layout.columns" :key="column.round"
-                    class="absolute top-0 text-xs font-medium uppercase tracking-wide text-slate-500"
+                    class="eyebrow absolute top-0"
                     :style="{ left: `${column.x}px`, width: `${CARD_WIDTH}px` }"
                 >
                     {{ roundLabel(stage, column.round) }}
@@ -32,7 +47,7 @@ const layout = computed(() => layoutBracket(props.stage));
                     <path
                         v-for="(edge, index) in layout.edges" :key="index"
                         :d="edge.path" fill="none" stroke-width="1.5" stroke-linecap="round"
-                        :class="edge.active ? 'stroke-emerald-400' : 'stroke-slate-200'"
+                        :class="edge.active ? 'stroke-win' : 'stroke-line'"
                     />
                 </svg>
 
@@ -46,7 +61,7 @@ const layout = computed(() => layoutBracket(props.stage));
 
                 <template v-if="layout.thirdPlace">
                     <h3
-                        class="absolute text-xs font-medium uppercase tracking-wide text-slate-500"
+                        class="eyebrow absolute"
                         :style="{ left: `${layout.thirdPlace.x}px`, top: `${layout.thirdPlace.y - THIRD_PLACE_GAP + 22}px`, width: `${CARD_WIDTH}px` }"
                     >
                         Матч за 3 место

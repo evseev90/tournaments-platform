@@ -11,18 +11,18 @@ defineProps({
 
 const resultLabels = { win: 'победа', loss: 'поражение', draw: 'ничья' };
 const resultClasses = {
-    win: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-    loss: 'bg-rose-50 text-rose-700 ring-rose-200',
-    draw: 'bg-slate-100 text-slate-600 ring-slate-200',
+    win: 'bg-win-soft text-win',
+    loss: 'bg-danger-soft text-danger',
+    draw: 'bg-sunken text-ink-2',
 };
 </script>
 
 <template>
     <Head :title="stats.name" />
     <AppLayout>
-        <div class="mb-6">
-            <Link href="/players" class="text-sm text-slate-400 hover:text-slate-700">← к статистике</Link>
-            <h1 class="mt-1 text-2xl font-semibold tracking-tight">{{ stats.name }}</h1>
+        <div class="mb-6 border-b-2 border-ink pb-4">
+            <Link href="/players" class="eyebrow transition hover:text-ink">← к статистике</Link>
+            <h1 class="headline mt-2 text-4xl">{{ stats.name }}</h1>
         </div>
 
         <div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -31,43 +31,41 @@ const resultClasses = {
                 { label: 'Побед', value: stats.wins },
                 { label: 'Поражений', value: stats.losses },
                 { label: 'Побед, %', value: stats.winRate },
-            ]" :key="tile.label" class="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                <div class="text-xs text-slate-500">{{ tile.label }}</div>
-                <div class="mt-1 text-2xl font-semibold tabular-nums">{{ tile.value }}</div>
+            ]" :key="tile.label" class="panel px-4 py-3">
+                <div class="label">{{ tile.label }}</div>
+                <div class="mt-1 font-mono text-3xl font-semibold">{{ tile.value }}</div>
             </div>
         </div>
 
         <div class="grid gap-6 lg:grid-cols-[1fr_minmax(0,20rem)]">
-            <section class="rounded-2xl border border-slate-200 bg-white">
-                <h2 class="border-b border-slate-100 px-5 py-4 font-semibold">Последние матчи</h2>
-                <ul v-if="matches.length" class="divide-y divide-slate-100">
-                    <li v-for="(match, index) in matches" :key="index" class="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3">
-                        <span class="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1" :class="resultClasses[match.result]">
-                            {{ resultLabels[match.result] }}
-                        </span>
+            <section class="panel overflow-hidden">
+                <h2 class="headline border-b border-line px-5 py-4 text-lg">Последние матчи</h2>
+                <ul v-if="matches.length">
+                    <li v-for="(match, index) in matches" :key="index" class="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3" :class="index ? 'border-t border-line' : ''">
+                        <span class="badge shrink-0" :class="resultClasses[match.result]">{{ resultLabels[match.result] }}</span>
                         <span class="min-w-0 flex-1 truncate text-sm">{{ match.opponent ?? 'без соперника' }}</span>
-                        <span class="text-sm tabular-nums text-slate-500">{{ match.score }}</span>
-                        <a :href="`/t/${match.tournamentSlug}`" class="w-full truncate text-xs text-slate-400 hover:text-slate-700 sm:w-auto">
+                        <span class="font-mono text-[13px] text-ink-2">{{ match.score }}</span>
+                        <a :href="`/t/${match.tournamentSlug}`" class="w-full truncate font-mono text-[11px] text-ink-3 transition hover:text-ink sm:w-auto">
                             {{ match.tournamentName }}<template v-if="match.playedAt"> · {{ formatDayShort(match.playedAt) }}</template>
                         </a>
                     </li>
                 </ul>
-                <p v-else class="px-5 py-6 text-sm text-slate-400">Матчей пока нет.</p>
+                <p v-else class="px-5 py-6 text-sm text-ink-3">Матчей пока нет.</p>
             </section>
 
-            <section class="rounded-2xl border border-slate-200 bg-white">
-                <h2 class="border-b border-slate-100 px-5 py-4 font-semibold">Соперники</h2>
-                <ul v-if="rivals.length" class="divide-y divide-slate-100">
-                    <li v-for="rival in rivals" :key="rival.name" class="flex items-center justify-between gap-3 px-5 py-2.5 text-sm">
+            <section class="panel overflow-hidden">
+                <h2 class="headline border-b border-line px-5 py-4 text-lg">Соперники</h2>
+                <ul v-if="rivals.length">
+                    <li v-for="(rival, index) in rivals" :key="rival.name" class="flex items-center justify-between gap-3 px-5 py-2.5 text-sm" :class="index ? 'border-t border-line' : ''">
                         <span class="min-w-0 truncate">{{ rival.name }}</span>
-                        <span class="shrink-0 tabular-nums">
-                            <span class="text-emerald-700">{{ rival.wins }}</span>
-                            <span class="text-slate-300"> : </span>
-                            <span class="text-rose-700">{{ rival.losses }}</span>
+                        <span class="shrink-0 font-mono text-[13px]">
+                            <span class="text-win">{{ rival.wins }}</span>
+                            <span class="text-ink-3">:</span>
+                            <span class="text-danger">{{ rival.losses }}</span>
                         </span>
                     </li>
                 </ul>
-                <p v-else class="px-5 py-6 text-sm text-slate-400">Пока не с кем сравнивать.</p>
+                <p v-else class="px-5 py-6 text-sm text-ink-3">Пока не с кем сравнивать.</p>
             </section>
         </div>
     </AppLayout>

@@ -26,33 +26,40 @@ usePoll(5000, { only: ['tournament', 'schedule'] });
 <template>
     <Head :title="tournament.name" />
     <AppLayout>
-        <div class="mb-6">
-            <div class="mb-1 flex items-center gap-2 text-sm text-slate-500">
-                <span>{{ sportLabels[tournament.sport] }}</span>
+        <div class="mb-6 border-b-2 border-ink pb-4">
+            <div class="mb-2 flex items-center gap-3">
+                <span class="eyebrow">{{ sportLabels[tournament.sport] }}</span>
                 <StatusBadge :status="tournament.status" />
             </div>
-            <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">{{ tournament.name }}</h1>
+            <h1 class="headline text-4xl sm:text-5xl">{{ tournament.name }}</h1>
         </div>
 
         <template v-if="stage">
-            <TabSwitch v-if="schedule.planned" v-model="tab" :tabs="tabs" class="mb-4 sm:w-fit" />
+            <TabSwitch v-if="schedule.planned" v-model="tab" :tabs="tabs" class="mb-5 flex sm:inline-flex" />
 
-            <div v-show="tab === 'bracket' || !schedule.planned" class="rounded-2xl border border-slate-200 bg-white p-5">
+            <div v-show="tab === 'bracket' || !schedule.planned" class="panel p-5">
                 <PhaseList :tournament="tournament" />
             </div>
 
-            <div v-show="tab === 'schedule' && schedule.planned" class="rounded-2xl border border-slate-200 bg-white p-5">
+            <div v-show="tab === 'schedule' && schedule.planned" class="panel p-5">
                 <ScheduleBoard :tournament="tournament" :schedule="schedule" />
             </div>
         </template>
 
-        <section v-else class="rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 class="mb-3 font-semibold">{{ typeLabel }} <span class="text-sm font-normal text-slate-400">{{ tournament.participants.length }}</span></h2>
-            <p v-if="!tournament.participants.length" class="text-sm text-slate-400">Организатор ещё собирает участников.</p>
-            <ol v-else class="grid gap-1 text-sm sm:grid-cols-2 lg:grid-cols-3">
-                <li v-for="p in tournament.participants" :key="p.id" class="flex gap-2"><span class="w-5 text-right tabular-nums text-slate-400">{{ p.seed }}</span>{{ p.name }}</li>
+        <section v-else class="panel p-5">
+            <h2 class="headline mb-4 border-b border-line pb-2 text-lg">
+                {{ typeLabel }}
+                <span class="ml-1 font-mono text-sm font-normal text-ink-3">{{ tournament.participants.length }}</span>
+            </h2>
+            <p v-if="!tournament.participants.length" class="text-sm text-ink-3">Организатор ещё собирает участников.</p>
+            <ol v-else class="grid gap-1.5 text-sm sm:grid-cols-2 lg:grid-cols-3">
+                <li v-for="p in tournament.participants" :key="p.id" class="flex gap-3">
+                    <span class="w-5 shrink-0 text-right font-mono text-[13px] text-ink-3">{{ p.seed }}</span>{{ p.name }}
+                </li>
             </ol>
-            <p class="mt-4 text-xs text-slate-400">Сетка появится здесь, когда организатор её сгенерирует. Страница обновляется сама.</p>
+            <p class="mt-5 border-t border-line pt-4 text-xs leading-relaxed text-ink-3">
+                Сетка появится здесь, когда организатор её сгенерирует. Страница обновляется сама.
+            </p>
         </section>
     </AppLayout>
 </template>

@@ -16,14 +16,23 @@ async function copy() {
 </script>
 
 <template>
-    <div>
-        <div class="mb-1 flex items-baseline justify-between">
-            <span class="text-xs font-medium uppercase tracking-wide text-slate-500">{{ label }}</span>
-            <span v-if="hint" class="text-xs" :class="danger ? 'text-rose-600' : 'text-slate-400'">{{ hint }}</span>
+    <div class="min-w-0">
+        <div class="mb-2 flex min-w-0 items-baseline justify-between gap-3">
+            <span class="label min-w-0 truncate">{{ label }}</span>
+            <span v-if="hint" class="eyebrow shrink-0" :class="danger ? 'text-danger' : ''">{{ hint }}</span>
         </div>
-        <div class="flex items-stretch overflow-hidden rounded-lg border border-slate-200 bg-white">
-            <input :value="value" readonly class="min-w-0 flex-1 bg-transparent px-3 py-2 font-mono text-sm text-slate-700 outline-none" @focus="$event.target.select()" />
-            <button type="button" class="border-l border-slate-200 px-3 text-sm font-medium text-slate-600 hover:bg-slate-50" @click="copy">
+        <div class="flex min-w-0 items-stretch overflow-hidden rounded-sm border border-line bg-sunken focus-within:border-accent">
+            <input
+                :value="value" readonly
+                class="w-0 min-w-0 flex-1 bg-transparent px-3 py-2 font-mono text-[13px] text-ink-2 outline-none"
+                @focus="$event.target.select()"
+            />
+            <button
+                type="button"
+                class="shrink-0 border-l border-line px-3 font-display text-[13px] font-medium uppercase tracking-[0.06em] transition hover:bg-surface"
+                :class="copied ? 'text-win' : 'text-ink-2'"
+                @click="copy"
+            >
                 {{ copied ? 'Готово' : 'Копировать' }}
             </button>
         </div>

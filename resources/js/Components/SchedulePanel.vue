@@ -55,53 +55,41 @@ const fields = [
 </script>
 
 <template>
-    <section class="rounded-2xl border border-slate-200 bg-white">
-        <header class="border-b border-slate-100 px-5 py-4">
-            <h2 class="font-semibold">Площадки и время</h2>
+    <section class="panel overflow-hidden">
+        <header class="border-b border-line px-5 py-4">
+            <h2 class="headline text-lg">Площадки и время</h2>
         </header>
 
         <div class="space-y-5 px-5 py-4">
             <VenuesEditor :venues="schedule.venues" :base-url="baseUrl" />
 
-            <form class="space-y-3 border-t border-slate-100 pt-4" @submit.prevent="saveSettings">
+            <form class="space-y-3 border-t border-line pt-4" @submit.prevent="saveSettings">
                 <label class="block">
-                    <span class="mb-1 block text-xs text-slate-500">Начало турнира</span>
-                    <input
-                        v-model="form.settings.starts_at" type="datetime-local"
-                        class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                    />
+                    <span class="label mb-1.5 block">Начало турнира</span>
+                    <input v-model="form.settings.starts_at" type="datetime-local" class="field field-sm font-mono" />
                 </label>
                 <div class="grid grid-cols-3 gap-2">
                     <label v-for="[key, label, min, max] in fields" :key="key" class="block">
-                        <span class="mb-1 block text-xs text-slate-500">{{ label }}</span>
-                        <input
-                            v-model.number="form.settings[key]" type="number" :min="min" :max="max"
-                            class="w-full rounded-lg border border-slate-200 px-2 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                        />
+                        <span class="label mb-1.5 block text-[11px]">{{ label }}</span>
+                        <input v-model.number="form.settings[key]" type="number" :min="min" :max="max" class="field field-sm font-mono" />
                     </label>
                 </div>
-                <button type="submit" :disabled="form.processing" class="text-sm text-slate-500 hover:text-slate-900">Сохранить параметры</button>
+                <button type="submit" :disabled="form.processing" class="btn btn-ghost">Сохранить параметры</button>
             </form>
 
-            <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
-                <span class="text-xs text-slate-400">
-                    <template v-if="!schedule.venues.length">Добавьте площадку, чтобы составить расписание</template>
-                    <template v-else-if="estimate">Примерно {{ estimate }} на {{ schedule.venues.length }} площадках</template>
+            <div class="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+                <span class="font-mono text-[11px] text-ink-3">
+                    <template v-if="!schedule.venues.length">добавьте площадку</template>
+                    <template v-else-if="estimate">≈ {{ estimate }} на {{ schedule.venues.length }} площадках</template>
                 </span>
                 <div class="flex gap-2">
-                    <button v-if="schedule.planned" type="button" class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50" @click="clear">
-                        Очистить
-                    </button>
-                    <button
-                        type="button" :disabled="!canPlan"
-                        class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-40"
-                        @click="plan"
-                    >
-                        {{ schedule.planned ? 'Переcоставить' : 'Составить расписание' }}
+                    <button v-if="schedule.planned" type="button" class="btn btn-secondary btn-sm" @click="clear">Очистить</button>
+                    <button type="button" :disabled="!canPlan" class="btn btn-primary btn-sm" @click="plan">
+                        {{ schedule.planned ? 'Пересоставить' : 'Составить' }}
                     </button>
                 </div>
             </div>
-            <p v-if="schedule.planned" class="text-xs text-slate-400">Пересоставление сотрёт ручные переносы.</p>
+            <p v-if="schedule.planned" class="text-xs leading-relaxed text-ink-3">Пересоставление сотрёт ручные переносы.</p>
         </div>
     </section>
 </template>

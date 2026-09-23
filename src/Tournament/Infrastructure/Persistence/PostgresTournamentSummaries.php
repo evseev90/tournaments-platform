@@ -7,12 +7,15 @@ namespace Tournaments\Tournament\Infrastructure\Persistence;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\Query\Builder;
 use stdClass;
 use Tournaments\Tournament\Application\Query\OwnedTournaments;
+use Tournaments\Tournament\Application\Query\RunningTournaments;
 use Tournaments\Tournament\Application\Query\TournamentSummary;
+use Tournaments\Tournament\Domain\Tournament\TournamentStatus;
 
-/** Модель чтения для списка турниров: одна выборка со счётчиками вместо загрузки агрегатов. */
-final readonly class PostgresOwnedTournaments implements OwnedTournaments
+/** Модель чтения для списков турниров: одна выборка со счётчиками вместо загрузки агрегатов. */
+final readonly class PostgresTournamentSummaries implements OwnedTournaments, RunningTournaments
 {
     public function __construct(
         private ConnectionInterface $db,
@@ -20,9 +23,27 @@ final readonly class PostgresOwnedTournaments implements OwnedTournaments
 
     public function of(int $ownerId): array
     {
-        $rows = $this->db->table('tournaments')
-            ->where('owner_id', $ownerId)
-            ->orderByDesc('created_at')
+        return $this->map($this->summaries()->where('owner_id', $ownerId)->orderByDesc('created_at'));
+    }
+
+    public function latest(int $limit): array
+    {
+        return $this->map($this->summaries()
+            ->where('status', TournamentStatus::InProgress->value)
+            ->selectSub(
+                $this->db->table('fixtures')
+                    ->join('stages', 'stages.id', '=', 'fixtures.stage_id')
+                    ->selectRaw('coalesce(max(fixtures.finished_at), tournaments.created_at)')
+                    ->whereColumn('stages.tournament_id', 'tournaments.id'),
+                'last_activity_at',
+            )
+            ->orderByDesc('last_activity_at')
+            ->limit($limit));
+    }
+
+    private function summaries(): Builder
+    {
+        return $this->db->table('tournaments')
             ->selectRaw('tournaments.*')
             ->selectSub(
                 $this->db->table('participants')->selectRaw('count(*)')->whereColumn('participants.tournament_id', 'tournaments.id'),
@@ -44,10 +65,13 @@ final readonly class PostgresOwnedTournaments implements OwnedTournaments
                     ->whereColumn('stages.tournament_id', 'tournaments.id')
                     ->where('fixtures.bye', false),
                 'matches_total',
-            )
-            ->get();
+            );
+    }
 
-        return array_values($rows->map(static fn (stdClass $row) => new TournamentSummary(
+    /** @return list<TournamentSummary> */
+    private function map(Builder $query): array
+    {
+        return array_values($query->get()->map(static fn (stdClass $row) => new TournamentSummary(
             id: $row->id,
             name: $row->name,
             sport: $row->sport,

@@ -66,22 +66,20 @@ function open(entry) {
 </script>
 
 <template>
-    <div v-if="schedule.assignments.length" class="space-y-6">
+    <div v-if="schedule.assignments.length" class="space-y-8">
         <section v-for="day in days" :key="day.at">
-            <h3 class="mb-3 text-xs font-medium uppercase tracking-wide text-slate-500">{{ formatDay(day.at) }}</h3>
+            <h3 class="eyebrow mb-3 border-b border-line pb-2">{{ formatDay(day.at) }}</h3>
 
             <div
-                class="hidden gap-3 pl-14 sm:grid sm:[grid-template-columns:repeat(var(--cols),minmax(0,1fr))]"
+                class="hidden gap-3 pl-16 sm:grid sm:[grid-template-columns:repeat(var(--cols),minmax(0,1fr))]"
                 :style="{ '--cols': schedule.venues.length }"
             >
-                <div v-for="venue in schedule.venues" :key="venue.id" class="truncate pb-2 text-xs font-medium text-slate-500">
-                    {{ venue.name }}
-                </div>
+                <div v-for="venue in schedule.venues" :key="venue.id" class="eyebrow truncate pb-2">{{ venue.name }}</div>
             </div>
 
             <div class="space-y-2">
                 <div v-for="slot in day.slots" :key="slot.at" class="flex gap-3">
-                    <div class="w-11 shrink-0 pt-2 text-right text-sm font-medium tabular-nums text-slate-500">{{ formatTime(slot.at) }}</div>
+                    <div class="w-13 shrink-0 pt-2 text-right font-mono text-[15px] font-semibold">{{ formatTime(slot.at) }}</div>
                     <div
                         class="grid flex-1 grid-cols-1 gap-3 sm:[grid-template-columns:repeat(var(--cols),minmax(0,1fr))]"
                         :style="{ '--cols': schedule.venues.length }"
@@ -90,24 +88,24 @@ function open(entry) {
                             :is="editable && slot.byVenue[venue.id] ? 'button' : 'div'"
                             v-for="venue in schedule.venues" :key="venue.id"
                             :type="editable && slot.byVenue[venue.id] ? 'button' : undefined"
-                            class="rounded-xl border px-3 py-2 text-left transition"
+                            class="rounded-sm border px-3 py-2 text-left transition"
                             :class="slot.byVenue[venue.id]
-                                ? (editable ? 'cursor-pointer border-slate-200 bg-white hover:border-emerald-400 hover:shadow' : 'border-slate-200 bg-white')
-                                : 'hidden border-dashed border-slate-100 bg-slate-50/50 sm:block'"
+                                ? (editable ? 'cursor-pointer border-line bg-surface hover:border-accent hover:bg-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent' : 'border-line bg-surface')
+                                : 'hidden border-dashed border-line bg-sunken/50 sm:block'"
                             @click="open(slot.byVenue[venue.id])"
                         >
                             <template v-if="slot.byVenue[venue.id]">
-                                <div class="mb-0.5 flex items-center justify-between gap-2">
-                                    <span class="truncate text-[11px] uppercase tracking-wide text-slate-400">{{ slot.byVenue[venue.id].round }}</span>
-                                    <span class="shrink-0 text-[11px] text-slate-400 sm:hidden">{{ venue.name }}</span>
+                                <div class="mb-1 flex items-center justify-between gap-2">
+                                    <span class="eyebrow truncate">{{ slot.byVenue[venue.id].round }}</span>
+                                    <span class="eyebrow shrink-0 sm:hidden">{{ venue.name }}</span>
                                 </div>
                                 <div v-if="slot.byVenue[venue.id].title" class="truncate text-sm">{{ slot.byVenue[venue.id].title }}</div>
-                                <div v-else class="truncate text-sm italic text-slate-400">победители предыдущих матчей</div>
-                                <div v-if="slot.byVenue[venue.id].fixture.status === 'finished'" class="mt-0.5 truncate text-[11px] tabular-nums text-emerald-700">
+                                <div v-else class="truncate text-sm italic text-ink-3">победители предыдущих матчей</div>
+                                <div v-if="slot.byVenue[venue.id].fixture.status === 'finished'" class="mt-1 truncate font-mono text-[11px] text-win">
                                     {{ outcomeSummary(slot.byVenue[venue.id].fixture.outcome) }}
                                 </div>
                             </template>
-                            <span v-else class="text-xs text-slate-300">свободно</span>
+                            <span v-else class="eyebrow">свободно</span>
                         </component>
                     </div>
                 </div>
@@ -117,8 +115,8 @@ function open(entry) {
         <MoveMatchDialog v-if="editable" :entry="moving" :venues="schedule.venues" :base-url="baseUrl" @close="moving = null" />
     </div>
 
-    <p v-else class="py-6 text-sm text-slate-400">
+    <p v-else class="py-6 text-sm text-ink-3">
         Расписание ещё не составлено.
-        <template v-if="editable">Добавьте площадки и нажмите «Составить расписание».</template>
+        <template v-if="editable">Добавьте площадки и нажмите «Составить».</template>
     </p>
 </template>

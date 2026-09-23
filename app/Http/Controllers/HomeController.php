@@ -12,13 +12,30 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Tournaments\Tournament\Application\Command\CreateTournament;
 use Tournaments\Tournament\Application\Command\CreateTournamentHandler;
+use Tournaments\Tournament\Application\Query\RunningTournaments;
+use Tournaments\Tournament\Application\Query\TournamentSummary;
 use Tournaments\Tournament\Domain\Scoring\Sport;
 
 final class HomeController extends Controller
 {
-    public function create(): Response
+    public function create(RunningTournaments $running): Response
     {
-        return Inertia::render('Home', ['sports' => SportPresets::all()]);
+        return Inertia::render('Home', [
+            'sports' => SportPresets::all(),
+            // Поля перечислены явно: список видят все, токен организатора сюда попасть не должен.
+            'running' => array_map(
+                static fn (TournamentSummary $summary) => [
+                    'id' => $summary->id,
+                    'name' => $summary->name,
+                    'sportLabel' => SportPresets::labelOf($summary->sport),
+                    'participants' => $summary->participants,
+                    'matchesPlayed' => $summary->matchesPlayed,
+                    'matchesTotal' => $summary->matchesTotal,
+                    'publicUrl' => route('public.show', ['slug' => $summary->publicSlug]),
+                ],
+                $running->latest(12),
+            ),
+        ]);
     }
 
     public function store(Request $request, CreateTournamentHandler $handler): RedirectResponse

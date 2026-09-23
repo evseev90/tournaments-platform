@@ -1,6 +1,7 @@
 <script setup>
 import { router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
+import { useDialogFocus } from '../lib/dialog';
 import { validateSets } from '../lib/scoring';
 
 const props = defineProps({
@@ -14,6 +15,9 @@ const emit = defineEmits(['close']);
 const maxSets = computed(() => props.rules.sets_to_win * 2 - 1);
 const sets = ref([]);
 const error = ref(null);
+const dialogElement = ref(null);
+
+useDialogFocus(dialogElement, () => Boolean(props.fixture), () => emit('close'));
 const busy = ref(false);
 
 watch(() => props.fixture, (f) => {
@@ -77,50 +81,50 @@ function revert() {
 
 <template>
     <Teleport to="body">
-        <div v-if="fixture" class="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-0 sm:items-center sm:p-4" @click.self="emit('close')">
-            <div class="w-full max-w-md rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl">
-                <div class="mb-4 flex items-start justify-between gap-3">
-                    <div>
-                        <h2 class="font-semibold">{{ names[fixture.homeId] }} <span class="text-slate-400">—</span> {{ names[fixture.awayId] }}</h2>
-                        <p class="text-xs text-slate-400">До {{ rules.sets_to_win }} побед в партиях, партия до {{ rules.points_per_set }}<template v-if="rules.points_in_deciding_set !== rules.points_per_set">, решающая до {{ rules.points_in_deciding_set }}</template></p>
+        <div v-if="fixture" class="fixed inset-0 z-50 flex items-end justify-center bg-board/70 p-0 sm:items-center sm:p-4" @click.self="emit('close')">
+            <div ref="dialogElement" role="dialog" aria-modal="true" aria-labelledby="score-dialog-title" tabindex="-1" class="w-full max-w-md overflow-hidden rounded-t-md border border-line bg-surface sm:rounded-md">
+                <div class="flex items-start justify-between gap-3 bg-board px-5 py-4">
+                    <div class="min-w-0">
+                        <h2 id="score-dialog-title" class="headline truncate text-lg text-board-ink">{{ names[fixture.homeId] }} — {{ names[fixture.awayId] }}</h2>
+                        <p class="mt-1 font-mono text-[11px] text-board-dim">
+                            до {{ rules.sets_to_win }} побед · партия до {{ rules.points_per_set }}<template v-if="rules.points_in_deciding_set !== rules.points_per_set"> · решающая до {{ rules.points_in_deciding_set }}</template>
+                        </p>
                     </div>
-                    <button type="button" class="text-slate-400 hover:text-slate-700" @click="emit('close')">✕</button>
+                    <button type="button" aria-label="Закрыть диалог" class="shrink-0 text-board-dim transition hover:text-board-ink" @click="emit('close')">✕</button>
                 </div>
 
-                <div class="space-y-2">
-                    <div class="grid grid-cols-[2rem_1fr_1rem_1fr] items-center gap-2 text-xs text-slate-400">
+                <div class="space-y-2 px-5 py-4">
+                    <div class="grid grid-cols-[2rem_1fr_1rem_1fr] items-center gap-2">
                         <span />
-                        <span class="truncate text-center">{{ names[fixture.homeId] }}</span>
+                        <span class="eyebrow truncate text-center">{{ names[fixture.homeId] }}</span>
                         <span />
-                        <span class="truncate text-center">{{ names[fixture.awayId] }}</span>
+                        <span class="eyebrow truncate text-center">{{ names[fixture.awayId] }}</span>
                     </div>
                     <template v-for="(set, index) in sets" :key="index">
                         <div v-if="rowVisible(index)" class="grid grid-cols-[2rem_1fr_1rem_1fr] items-center gap-2">
-                            <span class="text-xs text-slate-400">{{ index + 1 }}</span>
-                            <input v-model="set[0]" type="number" min="0" inputmode="numeric" class="rounded-lg border border-slate-200 px-2 py-2 text-center text-lg tabular-nums focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100" />
-                            <span class="text-center text-slate-300">:</span>
-                            <input v-model="set[1]" type="number" min="0" inputmode="numeric" class="rounded-lg border border-slate-200 px-2 py-2 text-center text-lg tabular-nums focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100" />
+                            <span class="font-mono text-xs text-ink-3">{{ index + 1 }}</span>
+                            <input v-model="set[0]" type="number" min="0" inputmode="numeric" :aria-label="`Сет ${index + 1}, ${names[fixture.homeId]}`" :data-dialog-initial-focus="index === 0 ? '' : undefined" class="field text-center font-mono text-lg" />
+                            <span class="text-center text-ink-3">:</span>
+                            <input v-model="set[1]" type="number" min="0" inputmode="numeric" :aria-label="`Сет ${index + 1}, ${names[fixture.awayId]}`" class="field text-center font-mono text-lg" />
                         </div>
                     </template>
-                    <div class="grid grid-cols-[2rem_1fr_1rem_1fr] items-center gap-2 text-sm font-semibold">
-                        <span />
-                        <span class="text-center">{{ tally.home }}</span>
-                        <span class="text-center text-slate-300">:</span>
-                        <span class="text-center">{{ tally.away }}</span>
+                    <div class="grid grid-cols-[2rem_1fr_1rem_1fr] items-center gap-2 border-t border-line pt-3">
+                        <span class="eyebrow">итог</span>
+                        <span class="text-center font-mono text-2xl font-semibold">{{ tally.home }}</span>
+                        <span class="text-center font-mono text-2xl text-ink-3">:</span>
+                        <span class="text-center font-mono text-2xl font-semibold">{{ tally.away }}</span>
                     </div>
                 </div>
 
-                <p v-if="error" class="mt-3 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{{ error }}</p>
+                <p v-if="error" role="alert" class="mx-5 rounded-sm border-l-[3px] border-danger bg-danger-soft px-3 py-2 text-sm text-danger">{{ error }}</p>
 
-                <div class="mt-5 flex flex-col gap-2">
-                    <button type="button" :disabled="busy" class="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-40" @click="saveSets">
-                        Сохранить счёт
-                    </button>
-                    <div class="flex gap-2 text-xs">
-                        <button type="button" :disabled="busy" class="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-slate-600 hover:bg-slate-50" @click="walkover('home')">Тех. победа слева</button>
-                        <button type="button" :disabled="busy" class="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-slate-600 hover:bg-slate-50" @click="walkover('away')">Тех. победа справа</button>
+                <div class="flex flex-col gap-2 px-5 pt-4 pb-5">
+                    <button type="button" :disabled="busy" :aria-busy="busy" class="btn btn-primary w-full" @click="saveSets">{{ busy ? 'Сохраняем…' : 'Сохранить счёт' }}</button>
+                    <div class="flex gap-2">
+                        <button type="button" :disabled="busy" class="btn btn-secondary btn-sm flex-1" @click="walkover('home')">Тех. слева</button>
+                        <button type="button" :disabled="busy" class="btn btn-secondary btn-sm flex-1" @click="walkover('away')">Тех. справа</button>
                     </div>
-                    <button v-if="fixture.status === 'finished'" type="button" :disabled="busy" class="text-xs text-rose-600 hover:underline" @click="revert">
+                    <button v-if="fixture.status === 'finished'" type="button" :disabled="busy" class="btn btn-danger btn-sm w-full" @click="revert">
                         Отменить результат
                     </button>
                 </div>

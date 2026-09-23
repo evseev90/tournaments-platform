@@ -86,75 +86,83 @@ const playableMatches = computed(
     <Head :title="tournament.name" />
     <AppLayout>
         <template #header-actions>
-            <a :href="urls.public" target="_blank" class="text-sm text-slate-500 hover:text-slate-900">Открыть как зритель ↗</a>
+            <a :href="urls.public" target="_blank" class="hidden whitespace-nowrap text-board-dim transition hover:text-board-ink sm:inline">Открыть как зритель ↗</a>
         </template>
 
-        <div class="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div class="mb-6 flex flex-wrap items-end justify-between gap-4 border-b-2 border-ink pb-4">
             <div class="min-w-0">
-                <div class="mb-1 flex items-center gap-2 text-sm text-slate-500">
-                    <span>{{ sportLabels[tournament.sport] }}</span>
+                <div class="mb-2 flex items-center gap-3">
+                    <span class="eyebrow">{{ sportLabels[tournament.sport] }}</span>
                     <StatusBadge :status="tournament.status" />
                 </div>
                 <form v-if="editingName" @submit.prevent="saveName">
-                    <input v-model="nameForm.name" autofocus maxlength="100" class="w-full max-w-lg rounded-lg border border-emerald-300 px-2 py-1 text-2xl font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-100" @blur="saveName" @keydown.esc="editingName = false" />
+                    <input
+                        v-model="nameForm.name" autofocus maxlength="100"
+                        class="field w-full max-w-lg font-display text-3xl font-semibold tracking-[0.02em] uppercase"
+                        @blur="saveName" @keydown.esc="editingName = false"
+                    />
                 </form>
-                <h1 v-else class="cursor-text truncate text-2xl font-semibold tracking-tight hover:text-emerald-700 sm:text-3xl" title="Переименовать" @click="editingName = true">
+                <h1 v-else class="headline cursor-text truncate text-4xl transition hover:text-accent sm:text-5xl" title="Переименовать" @click="editingName = true">
                     {{ tournament.name }}
                 </h1>
             </div>
             <div v-if="isRunning" class="flex gap-2">
-                <button v-if="!hasResults" type="button" class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50" @click="discardStage">
+                <button v-if="!hasResults" type="button" class="btn btn-secondary btn-sm" @click="discardStage">
                     {{ lastPhase > 1 ? 'Отменить плей-офф' : 'Отменить сетку' }}
                 </button>
-                <button v-if="stageCompleted" type="button" class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700" @click="finish">Завершить турнир</button>
+                <button v-if="stageCompleted" type="button" class="btn btn-primary btn-sm" @click="finish">Завершить турнир</button>
             </div>
         </div>
 
-        <div v-if="canClaim" class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/50 px-5 py-4">
-            <span class="text-sm text-slate-600">Турнир создан без аккаунта. Сохраните его себе, чтобы он попал в список и в статистику.</span>
-            <button type="button" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700" @click="claim">
-                Сохранить в мой аккаунт
-            </button>
+        <div v-if="canClaim" class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-sm border border-line border-l-[3px] border-l-accent bg-accent-soft px-5 py-4">
+            <span class="text-sm text-ink-2">Турнир создан без аккаунта. Сохраните его себе, чтобы он попал в список и в статистику.</span>
+            <button type="button" class="btn btn-primary btn-sm" @click="claim">Сохранить себе</button>
         </div>
 
-        <section class="mb-6 grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 sm:grid-cols-2">
+        <section class="panel mb-6 grid gap-5 p-5 sm:grid-cols-2">
             <CopyField label="Ссылка для зрителей" :value="urls.public" hint="можно делиться" />
-            <CopyField label="Ссылка организатора" :value="urls.manage" hint="не публикуйте: это ключ к управлению" danger />
+            <CopyField label="Ссылка организатора" :value="urls.manage" hint="не публикуйте" danger />
         </section>
 
-        <div v-if="isDraft" class="grid gap-6 lg:grid-cols-[1fr_minmax(0,22rem)]">
+        <div v-if="isDraft" class="grid items-start gap-6 lg:grid-cols-[1fr_minmax(0,22rem)]">
             <ParticipantsEditor :participants="tournament.participants" :base-url="urls.manage" :default-type="defaultType" />
             <div class="space-y-6">
                 <StageSetup :participants-count="tournament.participants.length" :base-url="urls.manage" />
-                <section class="rounded-2xl border border-slate-200 bg-white">
-                    <button type="button" class="flex w-full items-center justify-between px-5 py-4 text-left" @click="showRules = !showRules">
-                        <span class="font-semibold">Правила счёта</span>
-                        <span class="text-xs text-slate-400">до {{ tournament.rules.sets_to_win }} побед · партия до {{ tournament.rules.points_per_set }} · решающая до {{ tournament.rules.points_in_deciding_set }}</span>
+                <section class="panel overflow-hidden">
+                    <button type="button" class="flex w-full items-center justify-between gap-3 px-5 py-4 text-left" @click="showRules = !showRules">
+                        <span class="headline text-lg">Правила счёта</span>
+                        <span class="font-mono text-[11px] text-ink-3">
+                            {{ tournament.rules.sets_to_win }} · {{ tournament.rules.points_per_set }} · {{ tournament.rules.points_in_deciding_set }}
+                        </span>
                     </button>
-                    <form v-if="showRules" class="space-y-3 border-t border-slate-100 px-5 py-4" @submit.prevent="saveRules">
+                    <form v-if="showRules" class="space-y-3 border-t border-line px-5 py-4" @submit.prevent="saveRules">
                         <RulesEditor v-model="rulesForm.rules" />
-                        <button type="submit" :disabled="rulesForm.processing" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-40">Сохранить</button>
+                        <button type="submit" :disabled="rulesForm.processing" class="btn btn-primary btn-sm">Сохранить</button>
                     </form>
                 </section>
             </div>
         </div>
 
         <template v-else-if="stage">
-            <TabSwitch v-model="tab" :tabs="tabs" class="mb-4 sm:w-fit" />
+            <TabSwitch v-model="tab" :tabs="tabs" class="mb-5 flex sm:inline-flex" />
 
             <div v-show="tab === 'bracket'" class="space-y-6">
                 <PlayoffSetup v-if="groupsFinished && !hasPlayoff && isRunning" :groups="groups" :base-url="urls.manage" />
 
-                <div class="rounded-2xl border border-slate-200 bg-white p-5">
+                <div class="panel p-5">
                     <PhaseList :tournament="tournament" :editable="isRunning" :result-url="resultUrl" :pair-url="pairUrl" />
-                    <p v-if="isRunning" class="mt-4 text-xs text-slate-400">Нажмите на матч, чтобы ввести счёт. Уже введённый счёт можно поправить, пока не сыгран следующий матч.</p>
+                    <p v-if="isRunning" class="mt-5 border-t border-line pt-4 text-xs leading-relaxed text-ink-3">
+                        Нажмите на матч, чтобы ввести счёт. Уже введённый счёт можно поправить, пока не сыгран следующий матч.
+                    </p>
                 </div>
             </div>
 
-            <div v-show="tab === 'schedule'" class="grid gap-6 lg:grid-cols-[1fr_minmax(0,22rem)]">
-                <div class="rounded-2xl border border-slate-200 bg-white p-5">
+            <div v-show="tab === 'schedule'" class="grid items-start gap-6 lg:grid-cols-[1fr_minmax(0,22rem)]">
+                <div class="panel p-5">
                     <ScheduleBoard :tournament="tournament" :schedule="schedule" :editable="isRunning" :base-url="urls.manage" />
-                    <p v-if="schedule.planned && isRunning" class="mt-4 text-xs text-slate-400">Нажмите на матч, чтобы перенести его на другое время или площадку.</p>
+                    <p v-if="schedule.planned && isRunning" class="mt-5 border-t border-line pt-4 text-xs leading-relaxed text-ink-3">
+                        Нажмите на матч, чтобы перенести его на другое время или площадку.
+                    </p>
                 </div>
                 <SchedulePanel :schedule="schedule" :base-url="urls.manage" :matches-count="playableMatches" />
             </div>
