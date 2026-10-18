@@ -1,0 +1,71 @@
+/* Страницы из согласованных макетов Pencil; общие токены находятся в app.css. */
+.page-heading { align-items: center; padding-bottom: 0; border-bottom: 0; margin-bottom: 2rem; }
+.page-heading .headline, .player-profile-hero .headline, .tournament-section .headline,
+.owned-tournament-title, .profile-list-heading .headline { text-transform: none; letter-spacing: 0; }
+.dashboard-stats { gap: 2rem; padding-block: 1.5rem; border-block: 1px solid var(--c-line); }
+.dashboard-stat { padding: 0; border: 0; border-radius: 0; background: none; gap: .6rem; }
+.dashboard-stat strong { font-family: var(--font-mono); font-size: 2rem; line-height: 1.25; overflow-wrap: anywhere; }
+.owned-tournament-grid { gap: 1.5rem; }
+.owned-tournament { min-height: 19rem; padding: 1.75rem; border-radius: var(--radius-md); gap: 1.25rem; }
+.owned-tournament:hover { transform: none; box-shadow: none; }
+.owned-tournament-title { margin-top: 0; font-size: 1.875rem; font-weight: 600; overflow-wrap: anywhere; }
+.owned-tournament-meta { margin-top: 0; font-family: var(--font-sans); font-size: .8125rem; color: var(--c-ink-2); }
+.tournament-progress { display: block; width: 100%; height: 4px; appearance: none; border: 0; border-radius: 0; background: var(--c-sunken); color: var(--c-accent); }
+.tournament-progress::-webkit-progress-bar { background: var(--c-sunken); }
+.tournament-progress::-webkit-progress-value { background: var(--c-accent); }
+.tournament-progress::-moz-progress-bar { background: var(--c-accent); }
+.player-profile-hero { padding: 1.5rem 0; border: 0; border-radius: 0; background: none; gap: 2rem; }
+.player-avatar-large { width: 6.25rem; height: 6.25rem; font-size: 2.625rem; border: 0; }
+.player-profile-rate strong { font-family: var(--font-mono); font-size: clamp(2rem, 5vw, 4rem); }
+.profile-stats-grid { margin-block: 1.5rem 2rem; padding-block: 1.5rem; border-block: 1px solid var(--c-line); gap: 1.5rem; }
+.profile-stat-tile { padding: 0; border: 0; background: none; }
+.profile-stat-tile .font-display { font-family: var(--font-mono); }
+.profile-list-heading, .stats-table-title { background: none; padding: 1.25rem 1.5rem; }
+.stats-table th { background: var(--c-sunken); padding-block: 1rem; border-color: var(--c-line); }
+.stats-table td { padding-block: 1.375rem; }
+.stats-table th:first-child, .stats-table td:first-child { padding-left: 1.5rem; }
+.stats-table th:last-child, .stats-table td:last-child { padding-right: 1.5rem; }
+.stats-table thead tr { border-width: 0; }
+.profile-match-row { padding-block: 1.375rem; }
+.empty-state { border: 1px solid var(--c-line); background: var(--c-surface); }
+.public-hero { display: flex; flex-direction: column; align-items: stretch; padding: 3rem 4rem; gap: 1.75rem; background: var(--c-board); border: 0; border-radius: 0; margin: -3rem -4rem 2rem; }
+.public-title { margin: 0; font-size: clamp(2.75rem, 5vw, 4rem); }
+.public-hero .eyebrow { color: var(--c-board-dim); }
+.public-hero-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3rem; padding: 0; border: 0; border-radius: 0; background: none; }
+.public-hero-stats > div { min-width: 0; gap: .5rem; }
+.public-hero-stats strong { font-family: var(--font-mono); font-size: clamp(1.5rem, 3vw, 2.25rem); line-height: 1.3; overflow-wrap: anywhere; }
+.public-hero-stats .public-stage-name { font-family: var(--font-display); }
+.page-tabs.seg { display: flex; gap: 1.75rem; width: 100%; padding: 0; border: 0; border-bottom: 1px solid var(--c-line); border-radius: 0; background: none; }
+.page-tabs .seg-btn { min-height: 3rem; flex: none; padding: .875rem 0; border-radius: 0; border-bottom: 3px solid transparent; font-family: var(--font-sans); letter-spacing: 0; text-transform: none; box-shadow: none; }
+.page-tabs .seg-btn[aria-selected='true'] { color: var(--c-accent); background: none; border-bottom-color: var(--c-accent); }
+.score-editor input { min-height: 2.75rem; }
+.score-editor .headline { text-transform: none; letter-spacing: 0; }
+.manage-title-button .headline { white-space: normal; overflow-wrap: anywhere; text-transform: none; }
+.manage-title-button:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 4px; }
+.manage-edit-hint { opacity: 1; }
+.public-participant { background: var(--c-surface); padding: 1rem; }
+.btn:disabled { cursor: not-allowed; }
+@media (min-width: 768px) {
+    .owned-tournament-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) {
+    .score-editor { max-height: calc(100dvh - 4rem); overflow-y: auto; }
+}
+@media (max-width: 639px) {
+    .dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+    .dashboard-stat:last-child { grid-column: 1 / -1; }
+    .owned-tournament { min-height: auto; padding: 1.25rem; }
+    .owned-tournament-top { flex-wrap: wrap; }
+    .public-hero { padding: 1.75rem 1.5rem; margin: -2rem -1.5rem 1.5rem; gap: 1.25rem; }
+    .public-hero-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+    .player-profile-hero { flex-wrap: wrap; gap: 1rem; }
+    .player-profile-hero .player-avatar { width: 3.5rem; height: 3.5rem; font-size: 1.5rem; }
+    .player-profile-hero h1 { font-size: 2rem; }
+    .player-profile-rate { width: 100%; align-items: start; }
+    .profile-match-row { padding: 1.25rem; }
+    .btn { min-height: 2.75rem; }
+    .page-tabs.seg { gap: 1.5rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .owned-tournament, .player-card { transition: none; }
+}

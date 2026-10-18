@@ -6,4 +6,4 @@ namespace Tournaments\Tournament\Application\Exception;
 
 use Tournaments\Tournament\Domain\Exception\TournamentDomainException;
 
-final class StageHasResults extends TournamentDomainException {}
+class StageHasResults extends TournamentDomainException {}

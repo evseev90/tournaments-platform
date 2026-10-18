@@ -15,6 +15,10 @@ export function validateSets(rules, sets) {
         const target = deciding ? rules.points_in_deciding_set : rules.points_per_set;
         const [h, a] = set;
 
+        if (![h, a].every((value) => Number.isSafeInteger(value) && value >= 0)) {
+            return `Партия ${number}: очки должны быть целыми неотрицательными числами`;
+        }
+
         if (h === a) return `Партия ${number}: ничья невозможна`;
         const winner = Math.max(h, a);
         const margin = Math.abs(h - a);

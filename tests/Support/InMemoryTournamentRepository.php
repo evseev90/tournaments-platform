@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use Tournaments\Tournament\Domain\Exception\TournamentNotFound;
+use Tournaments\Tournament\Domain\Stage\StageId;
 use Tournaments\Tournament\Domain\Tournament\AdminToken;
 use Tournaments\Tournament\Domain\Tournament\PublicSlug;
 use Tournaments\Tournament\Domain\Tournament\Tournament;
@@ -31,6 +32,13 @@ final class InMemoryTournamentRepository implements TournamentRepository
     public function findBySlug(PublicSlug $slug): ?Tournament
     {
         $found = array_find($this->items, static fn (Tournament $t) => $t->publicSlug->equals($slug));
+
+        return $found === null ? null : self::copy($found);
+    }
+
+    public function findByStageId(StageId $stageId): ?Tournament
+    {
+        $found = array_find($this->items, static fn (Tournament $t) => $t->hasStage($stageId));
 
         return $found === null ? null : self::copy($found);
     }

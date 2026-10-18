@@ -6,4 +6,4 @@ namespace Tournaments\Tournament\Application\Exception;
 
 use Tournaments\Tournament\Domain\Exception\TournamentDomainException;
 
-final class NoStageGenerated extends TournamentDomainException {}
+class NoStageGenerated extends TournamentDomainException {}

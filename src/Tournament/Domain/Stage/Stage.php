@@ -259,6 +259,16 @@ final class Stage
         return $this->status === StageStatus::Completed;
     }
 
+    /** @return list<StandingRow> */
+    public function standings(): array
+    {
+        return (new StandingsCalculator)->calculate(
+            $this->participants(),
+            $this->fixtures(),
+            useBuchholz: $this->format->isPairedByRound(),
+        );
+    }
+
     private function advance(Fixture $fixture): void
     {
         $winner = $fixture->winner();

@@ -9,6 +9,7 @@ const props = defineProps({
     stage: { type: Object, required: true },
     names: { type: Object, required: true },
     editable: Boolean,
+    selectedFixtureId: { type: String, default: null },
 });
 const emit = defineEmits(['open']);
 
@@ -41,7 +42,7 @@ const branches = computed(() => ['winners', 'losers', 'grand_final']
 <template>
     <div class="space-y-8">
         <section v-for="branch in branches" :key="branch.bracket" class="pb-2">
-            <BracketRoundsList :rounds="branch.mobileRounds" :names="names" :editable="editable" class="sm:hidden" @open="emit('open', $event)" />
+            <BracketRoundsList :rounds="branch.mobileRounds" :names="names" :editable="editable" :selected-fixture-id="selectedFixtureId" class="sm:hidden" @open="emit('open', $event)" />
             <div class="hidden overflow-x-auto sm:block">
                 <div class="min-w-max">
                     <div class="relative mb-3 h-4" :style="{ width: `${branch.layout.width}px` }">
@@ -68,7 +69,7 @@ const branches = computed(() => ['winners', 'losers', 'grand_final']
                             class="absolute"
                             :style="{ left: `${item.x}px`, top: `${item.y}px`, width: `${CARD_WIDTH}px`, height: `${CARD_HEIGHT}px` }"
                         >
-                            <FixtureCard :fixture="item.fixture" :names="names" :editable="editable" in-bracket @open="emit('open', $event)" />
+                            <FixtureCard :fixture="item.fixture" :names="names" :editable="editable" :selected="item.fixture.id === selectedFixtureId" :label="`Матч ${item.fixture.position + 1}`" in-bracket @open="emit('open', $event)" />
                         </div>
                     </div>
                 </div>

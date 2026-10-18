@@ -9,6 +9,7 @@ const props = defineProps({
     stage: { type: Object, required: true },
     names: { type: Object, required: true },
     editable: Boolean,
+    selectedFixtureId: { type: String, default: null },
 });
 const emit = defineEmits(['open']);
 
@@ -29,7 +30,7 @@ const mobileRounds = computed(() => {
 </script>
 
 <template>
-    <BracketRoundsList :rounds="mobileRounds" :names="names" :editable="editable" class="sm:hidden" @open="emit('open', $event)" />
+    <BracketRoundsList :rounds="mobileRounds" :names="names" :editable="editable" :selected-fixture-id="selectedFixtureId" class="sm:hidden" @open="emit('open', $event)" />
     <div class="hidden overflow-x-auto pb-2 sm:block">
         <div class="min-w-max">
             <div class="relative mb-3 h-4" :style="{ width: `${layout.width}px` }">
@@ -56,7 +57,7 @@ const mobileRounds = computed(() => {
                     class="absolute"
                     :style="{ left: `${item.x}px`, top: `${item.y}px`, width: `${CARD_WIDTH}px`, height: `${CARD_HEIGHT}px` }"
                 >
-                    <FixtureCard :fixture="item.fixture" :names="names" :editable="editable" in-bracket @open="emit('open', $event)" />
+                    <FixtureCard :fixture="item.fixture" :names="names" :editable="editable" :selected="item.fixture.id === selectedFixtureId" :label="`Матч ${item.fixture.position + 1}`" in-bracket @open="emit('open', $event)" />
                 </div>
 
                 <template v-if="layout.thirdPlace">
@@ -70,7 +71,7 @@ const mobileRounds = computed(() => {
                         class="absolute"
                         :style="{ left: `${layout.thirdPlace.x}px`, top: `${layout.thirdPlace.y}px`, width: `${CARD_WIDTH}px`, height: `${CARD_HEIGHT}px` }"
                     >
-                        <FixtureCard :fixture="layout.thirdPlace.fixture" :names="names" :editable="editable" in-bracket @open="emit('open', $event)" />
+                        <FixtureCard :fixture="layout.thirdPlace.fixture" :names="names" :editable="editable" :selected="layout.thirdPlace.fixture.id === selectedFixtureId" label="За 3 место" in-bracket @open="emit('open', $event)" />
                     </div>
                 </template>
             </div>

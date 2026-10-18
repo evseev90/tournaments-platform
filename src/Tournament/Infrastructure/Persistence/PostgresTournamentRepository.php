@@ -11,6 +11,8 @@ use stdClass;
 use Tournaments\Tournament\Domain\Exception\TournamentNotFound;
 use Tournaments\Tournament\Domain\Scoring\ScoringRulesFactory;
 use Tournaments\Tournament\Domain\Scoring\Sport;
+use Tournaments\Tournament\Domain\Stage\Stage;
+use Tournaments\Tournament\Domain\Stage\StageId;
 use Tournaments\Tournament\Domain\Tournament\AdminToken;
 use Tournaments\Tournament\Domain\Tournament\Name;
 use Tournaments\Tournament\Domain\Tournament\OwnerId;
@@ -24,15 +26,20 @@ use Tournaments\Tournament\Domain\Tournament\TournamentRepository;
 use Tournaments\Tournament\Domain\Tournament\TournamentStatus;
 
 /**
- * Агрегат целиком: строка турнира плюс строки участников. Сохранение — upsert и удаление лишних участников.
+ * Агрегат целиком: строка турнира плюс строки участников и стадий.
  * get() берёт строку с блокировкой: обработчики команд работают в транзакции, и два параллельных
  * изменения одного турнира выстраиваются в очередь.
  */
 final readonly class PostgresTournamentRepository implements TournamentRepository
 {
+    private PostgresStageRepository $stages;
+
     public function __construct(
         private ConnectionInterface $db,
-    ) {}
+        ?PostgresStageRepository $stages = null,
+    ) {
+        $this->stages = $stages ?? new PostgresStageRepository($db);
+    }
 
     public function get(TournamentId $id): Tournament
     {
@@ -56,6 +63,16 @@ final readonly class PostgresTournamentRepository implements TournamentRepositor
         $row = $this->tournaments()->where('public_slug', $slug->value)->first();
 
         return $row instanceof stdClass ? $this->hydrate($row) : null;
+    }
+
+    public function findByStageId(StageId $stageId): ?Tournament
+    {
+        $row = $this->stagesTable()->where('id', $stageId->value)->first();
+        if (! $row instanceof stdClass) {
+            return null;
+        }
+
+        return $this->get(TournamentId::fromString($row->tournament_id));
     }
 
     public function save(Tournament $tournament): void
@@ -90,6 +107,18 @@ final readonly class PostgresTournamentRepository implements TournamentRepositor
                 'seed' => $p->seed,
             ], $participants), ['id'], ['name', 'type', 'members', 'seed']);
         }
+
+        $currentStages = $tournament->stages();
+        $stageIds = array_map(static fn (Stage $s) => $s->id->value, $currentStages);
+
+        $this->stagesTable()
+            ->where('tournament_id', $tournament->id->value)
+            ->whereNotIn('id', $stageIds)
+            ->delete();
+
+        foreach ($currentStages as $stage) {
+            $this->stages->save($stage);
+        }
     }
 
     private function hydrate(stdClass $row): Tournament
@@ -107,6 +136,8 @@ final readonly class PostgresTournamentRepository implements TournamentRepositor
             ))
             ->all();
 
+        $stages = $this->stages->ofTournament(TournamentId::fromString($row->id));
+
         return Tournament::reconstitute(
             id: TournamentId::fromString($row->id),
             name: new Name($row->name),
@@ -118,6 +149,7 @@ final readonly class PostgresTournamentRepository implements TournamentRepositor
             createdAt: new DateTimeImmutable($row->created_at),
             participants: array_values($participants),
             ownerId: $row->owner_id === null ? null : new OwnerId((int) $row->owner_id),
+            stages: $stages,
         );
     }
 
@@ -129,5 +161,10 @@ final readonly class PostgresTournamentRepository implements TournamentRepositor
     private function participants(): Builder
     {
         return $this->db->table('participants');
+    }
+
+    private function stagesTable(): Builder
+    {
+        return $this->db->table('stages');
     }
 }

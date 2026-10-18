@@ -11,11 +11,19 @@ use Tournaments\Tournament\Domain\Event\ParticipantAdded;
 use Tournaments\Tournament\Domain\Event\TournamentCreated;
 use Tournaments\Tournament\Domain\Event\TournamentStarted;
 use Tournaments\Tournament\Domain\Exception\InvalidName;
+use Tournaments\Tournament\Domain\Exception\NoStageGenerated;
 use Tournaments\Tournament\Domain\Exception\NotEnoughParticipants;
 use Tournaments\Tournament\Domain\Exception\ParticipantNotFound;
+use Tournaments\Tournament\Domain\Exception\StageAlreadyGenerated;
+use Tournaments\Tournament\Domain\Exception\StageHasResults;
 use Tournaments\Tournament\Domain\Exception\TournamentLocked;
 use Tournaments\Tournament\Domain\Scoring\SetBasedRules;
+use Tournaments\Tournament\Domain\Scoring\Side;
 use Tournaments\Tournament\Domain\Scoring\Sport;
+use Tournaments\Tournament\Domain\Scoring\Walkover;
+use Tournaments\Tournament\Domain\Stage\StageFormat;
+use Tournaments\Tournament\Domain\Stage\StageId;
+use Tournaments\Tournament\Domain\Stage\StageSettings;
 use Tournaments\Tournament\Domain\Tournament\Name;
 use Tournaments\Tournament\Domain\Tournament\Participant;
 use Tournaments\Tournament\Domain\Tournament\ParticipantId;
@@ -143,6 +151,109 @@ final class TournamentTest extends TestCase
         $tournament->changeRules($custom);
 
         self::assertSame($custom, $tournament->rules);
+    }
+
+    #[Test]
+    public function generates_stage_and_freezes_tournament(): void
+    {
+        $tournament = $this->draft();
+        $this->add($tournament, 'A');
+        $this->add($tournament, 'B');
+
+        $stageId = StageId::generate();
+        $stage = $tournament->generateStage($stageId, StageFormat::SingleElimination, new StageSettings, $this->now);
+
+        self::assertSame(TournamentStatus::InProgress, $tournament->status);
+        self::assertTrue($tournament->hasStage($stageId));
+        self::assertSame($stage, $tournament->stage($stageId));
+        self::assertCount(1, $tournament->stages());
+    }
+
+    #[Test]
+    public function cannot_generate_stage_twice_without_discarding(): void
+    {
+        $tournament = $this->draft();
+        $this->add($tournament, 'A');
+        $this->add($tournament, 'B');
+
+        $tournament->generateStage(StageId::generate(), StageFormat::SingleElimination, new StageSettings, $this->now);
+
+        $this->expectException(StageAlreadyGenerated::class);
+        $tournament->generateStage(StageId::generate(), StageFormat::SingleElimination, new StageSettings, $this->now);
+    }
+
+    #[Test]
+    public function discards_stage_and_reopens_tournament(): void
+    {
+        $tournament = $this->draft();
+        $this->add($tournament, 'A');
+        $this->add($tournament, 'B');
+
+        $stageId = StageId::generate();
+        $tournament->generateStage($stageId, StageFormat::SingleElimination, new StageSettings, $this->now);
+
+        $doomed = $tournament->discardCurrentStage($this->now);
+
+        self::assertCount(1, $doomed);
+        self::assertSame(TournamentStatus::Draft, $tournament->status);
+        self::assertEmpty($tournament->stages());
+    }
+
+    #[Test]
+    public function cannot_discard_when_no_stage_exists(): void
+    {
+        $tournament = $this->draft();
+
+        $this->expectException(NoStageGenerated::class);
+        $tournament->discardCurrentStage($this->now);
+    }
+
+    #[Test]
+    public function cannot_discard_stage_with_results(): void
+    {
+        $tournament = $this->draft();
+        $this->add($tournament, 'A');
+        $this->add($tournament, 'B');
+
+        $stageId = StageId::generate();
+        $stage = $tournament->generateStage($stageId, StageFormat::SingleElimination, new StageSettings, $this->now);
+        $fixture = $stage->fixtures()[0];
+
+        $tournament->recordFixtureResult($stageId, $fixture->id, new Walkover(Side::Home), $this->now);
+
+        $this->expectException(StageHasResults::class);
+        $tournament->discardCurrentStage($this->now);
+    }
+
+    #[Test]
+    public function generates_groups_and_playoff_from_standings(): void
+    {
+        $tournament = $this->draft();
+        for ($i = 1; $i <= 4; $i++) {
+            $this->add($tournament, "Team $i");
+        }
+
+        $groups = $tournament->generateGroups(2, new StageSettings, $this->now);
+        self::assertCount(2, $groups);
+
+        // Play each group match
+        foreach ($groups as $group) {
+            foreach ($group->fixtures() as $f) {
+                $tournament->recordFixtureResult($group->id, $f->id, new Walkover(Side::Home), $this->now);
+            }
+        }
+
+        $playoff = $tournament->generatePlayoff(1, false, $this->now);
+
+        self::assertSame(2, $playoff->phase);
+        self::assertCount(3, $tournament->stages());
+
+        // Discard playoff leaves groups intact
+        $doomed = $tournament->discardCurrentStage($this->now);
+        self::assertCount(1, $doomed);
+        self::assertSame(2, $doomed[0]->phase);
+        self::assertSame(TournamentStatus::InProgress, $tournament->status);
+        self::assertCount(2, $tournament->stages());
     }
 
     private function draft(): Tournament

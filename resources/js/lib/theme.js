@@ -35,9 +35,12 @@ export function toggleTheme() {
 }
 
 export function watchSystemTheme() {
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = (event) => {
         if (stored() !== null) return;
         isDark.value = event.matches;
         document.documentElement.classList.toggle('dark', event.matches);
-    });
+    };
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
 }

@@ -8,14 +8,15 @@ use Tournaments\Shared\Application\Clock;
 use Tournaments\Shared\Application\EventDispatcher;
 use Tournaments\Shared\Application\TransactionManager;
 use Tournaments\Tournament\Domain\Stage\Format\SwissPairing;
-use Tournaments\Tournament\Domain\Stage\Stage;
 use Tournaments\Tournament\Domain\Stage\StageId;
-use Tournaments\Tournament\Domain\Stage\StageRepository;
+use Tournaments\Tournament\Domain\Tournament\Tournament;
+use Tournaments\Tournament\Domain\Tournament\TournamentId;
+use Tournaments\Tournament\Domain\Tournament\TournamentRepository;
 
 final readonly class PairNextRoundHandler
 {
     public function __construct(
-        private StageRepository $stages,
+        private TournamentRepository $tournaments,
         private TransactionManager $transaction,
         private EventDispatcher $events,
         private Clock $clock,
@@ -24,13 +25,16 @@ final readonly class PairNextRoundHandler
 
     public function __invoke(PairNextRound $command): void
     {
-        $stage = $this->transaction->transactional(function () use ($command): Stage {
-            $stage = $this->stages->get(StageId::fromString($command->stageId));
-            $stage->pairNextRound($this->pairing, $this->clock->now());
-            $this->stages->save($stage);
+        $now = $this->clock->now();
 
-            return $stage;
+        $tournament = $this->transaction->transactional(function () use ($command, $now): Tournament {
+            $tournament = $this->tournaments->get(TournamentId::fromString($command->tournamentId));
+            $tournament->pairNextRound(StageId::fromString($command->stageId), $now, $this->pairing);
+            $this->tournaments->save($tournament);
+
+            return $tournament;
         });
-        $this->events->dispatch(...$stage->releaseEvents());
+
+        $this->events->dispatch(...$tournament->releaseEvents());
     }
 }

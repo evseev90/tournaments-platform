@@ -90,10 +90,10 @@ abstract class ApplicationTestCase extends TestCase
         $this->removeParticipant = new RemoveParticipantHandler($this->tournaments, $this->transaction, $this->events, $this->clock);
         $this->reorderParticipants = new ReorderParticipantsHandler($this->tournaments, $this->transaction);
         $this->shuffleParticipants = new ShuffleParticipantsHandler($this->tournaments, $this->transaction, new Randomizer(new Mt19937(42)));
-        $this->generateStage = new GenerateStageHandler($this->tournaments, $this->stages, $this->transaction, $this->events, $this->clock);
-        $this->discardStage = new DiscardStageHandler($this->tournaments, $this->stages, $this->transaction, $this->events, $this->clock);
-        $this->recordFixtureResult = new RecordFixtureResultHandler($this->tournaments, $this->stages, $this->transaction, $this->events, $this->clock);
-        $this->revertFixtureResult = new RevertFixtureResultHandler($this->stages, $this->transaction, $this->events, $this->clock);
+        $this->generateStage = new GenerateStageHandler($this->tournaments, $this->transaction, $this->events, $this->clock);
+        $this->discardStage = new DiscardStageHandler($this->tournaments, $this->transaction, $this->events, $this->clock);
+        $this->recordFixtureResult = new RecordFixtureResultHandler($this->tournaments, $this->transaction, $this->events, $this->clock);
+        $this->revertFixtureResult = new RevertFixtureResultHandler($this->tournaments, $this->transaction, $this->events, $this->clock);
         $this->finishTournament = new FinishTournamentHandler($this->tournaments, $this->transaction, $this->events, $this->clock);
     }
 

@@ -21,7 +21,7 @@ final readonly class TournamentFinder
 {
     public function __construct(
         private TournamentRepository $tournaments,
-        private StageRepository $stages,
+        private ?StageRepository $stages = null,
         private TournamentViewAssembler $assembler = new TournamentViewAssembler,
     ) {}
 
@@ -56,6 +56,10 @@ final readonly class TournamentFinder
     /** @throws TournamentNotFound */
     private function view(Tournament $tournament): TournamentView
     {
-        return $this->assembler->assemble($tournament, $this->stages->ofTournament($tournament->id));
+        $stages = $tournament->stages() !== []
+            ? $tournament->stages()
+            : ($this->stages?->ofTournament($tournament->id) ?? []);
+
+        return $this->assembler->assemble($tournament, $stages);
     }
 }

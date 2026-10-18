@@ -7,25 +7,18 @@ namespace Tournaments\Tournament\Application\Command;
 use Tournaments\Shared\Application\Clock;
 use Tournaments\Shared\Application\EventDispatcher;
 use Tournaments\Shared\Application\TransactionManager;
-use Tournaments\Tournament\Application\Exception\StageAlreadyGenerated;
 use Tournaments\Tournament\Domain\Stage\Stage;
 use Tournaments\Tournament\Domain\Stage\StageFormat;
 use Tournaments\Tournament\Domain\Stage\StageId;
-use Tournaments\Tournament\Domain\Stage\StageRepository;
 use Tournaments\Tournament\Domain\Stage\StageSettings;
 use Tournaments\Tournament\Domain\Tournament\Tournament;
 use Tournaments\Tournament\Domain\Tournament\TournamentId;
 use Tournaments\Tournament\Domain\Tournament\TournamentRepository;
 
-/**
- * Генерирует сетку и запускает турнир: с этого момента состав заморожен.
- * Пока у турнира одна стадия; группы + плей-офф появятся как вторая стадия позже.
- */
 final readonly class GenerateStageHandler
 {
     public function __construct(
         private TournamentRepository $tournaments,
-        private StageRepository $stages,
         private TransactionManager $transaction,
         private EventDispatcher $events,
         private Clock $clock,
@@ -42,20 +35,14 @@ final readonly class GenerateStageHandler
         $result = $this->transaction->transactional(function () use ($command, $format, $settings, $now): array {
             $tournamentId = TournamentId::fromString($command->tournamentId);
             $tournament = $this->tournaments->get($tournamentId);
-            if ($this->stages->ofTournament($tournamentId) !== []) {
-                throw new StageAlreadyGenerated('The tournament already has a stage; discard it first');
-            }
-
-            $tournament->start($now);
-            $stage = Stage::generate(StageId::generate(), $tournamentId, $format, $settings, $tournament->seededParticipantIds(), $now);
-
+            $stage = $tournament->generateStage(StageId::generate(), $format, $settings, $now);
             $this->tournaments->save($tournament);
-            $this->stages->save($stage);
 
             return [$tournament, $stage];
         });
+
         [$tournament, $stage] = $result;
-        $this->events->dispatch(...$tournament->releaseEvents(), ...$stage->releaseEvents());
+        $this->events->dispatch(...$tournament->releaseEvents());
 
         return $stage->id->value;
     }

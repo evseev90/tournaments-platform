@@ -6,8 +6,8 @@
  * потому что проходы занимают место в сетке наравне с играми.
  */
 
-export const CARD_HEIGHT = 66;
-export const CARD_WIDTH = 224;
+export const CARD_HEIGHT = 108;
+export const CARD_WIDTH = 260;
 export const COLUMN_GAP = 44;
 export const ROW_GAP = 30;
 

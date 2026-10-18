@@ -9,9 +9,8 @@ use Tournaments\Shared\Application\EventDispatcher;
 use Tournaments\Shared\Application\TransactionManager;
 use Tournaments\Tournament\Domain\Scoring\ScoringRulesFactory;
 use Tournaments\Tournament\Domain\Stage\FixtureId;
-use Tournaments\Tournament\Domain\Stage\Stage;
 use Tournaments\Tournament\Domain\Stage\StageId;
-use Tournaments\Tournament\Domain\Stage\StageRepository;
+use Tournaments\Tournament\Domain\Tournament\Tournament;
 use Tournaments\Tournament\Domain\Tournament\TournamentId;
 use Tournaments\Tournament\Domain\Tournament\TournamentRepository;
 
@@ -19,7 +18,6 @@ final readonly class RecordFixtureResultHandler
 {
     public function __construct(
         private TournamentRepository $tournaments,
-        private StageRepository $stages,
         private TransactionManager $transaction,
         private EventDispatcher $events,
         private Clock $clock,
@@ -28,15 +26,21 @@ final readonly class RecordFixtureResultHandler
     public function __invoke(RecordFixtureResult $command): void
     {
         $outcome = ScoringRulesFactory::outcomeFromArray($command->outcome);
+        $now = $this->clock->now();
 
-        $stage = $this->transaction->transactional(function () use ($command, $outcome): Stage {
+        $tournament = $this->transaction->transactional(function () use ($command, $outcome, $now): Tournament {
             $tournament = $this->tournaments->get(TournamentId::fromString($command->tournamentId));
-            $stage = $this->stages->get(StageId::fromString($command->stageId));
-            $stage->recordResult(FixtureId::fromString($command->fixtureId), $outcome, $tournament->rules, $this->clock->now());
-            $this->stages->save($stage);
+            $tournament->recordFixtureResult(
+                StageId::fromString($command->stageId),
+                FixtureId::fromString($command->fixtureId),
+                $outcome,
+                $now,
+            );
+            $this->tournaments->save($tournament);
 
-            return $stage;
+            return $tournament;
         });
-        $this->events->dispatch(...$stage->releaseEvents());
+
+        $this->events->dispatch(...$tournament->releaseEvents());
     }
 }

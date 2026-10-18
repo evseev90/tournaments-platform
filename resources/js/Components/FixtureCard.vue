@@ -6,12 +6,15 @@ const props = defineProps({
     fixture: { type: Object, required: true },
     names: { type: Object, required: true },
     editable: Boolean,
+    selected: Boolean,
     /** В сетке карточки одной высоты, иначе линии не сойдутся: счёт по партиям уходит в подпись под карточкой. */
     inBracket: Boolean,
+    label: { type: String, default: 'Матч' },
 });
 const emit = defineEmits(['open']);
 
 const clickable = computed(() => props.editable && (props.fixture.status === 'ready' || props.fixture.status === 'finished'));
+const statusLabel = computed(() => ({ ready: 'К игре', finished: 'Завершён', bye: 'Проход' }[props.fixture.status] ?? 'Ожидание'));
 
 const rows = computed(() => ['home', 'away'].map((side) => {
     const id = props.fixture[`${side}Id`];
@@ -33,18 +36,23 @@ const setScores = computed(() => props.fixture.outcome?.type === 'sets' ? props.
 <template>
     <component
         :is="clickable ? 'button' : 'div'" :type="clickable ? 'button' : undefined"
-        class="relative flex h-full w-full flex-col rounded-sm border bg-surface text-left transition"
+        class="relative flex h-full w-full flex-col items-stretch rounded-sm border text-left transition"
+        :aria-label="clickable ? `${label}: ${rows.map((row) => row.name ?? 'ожидание').join(' — ')}. Ввести или изменить счёт` : undefined"
+        :aria-pressed="clickable ? selected : undefined"
         :class="[
             inBracket ? '' : 'overflow-hidden',
-            fixture.status === 'bye' ? 'border-dashed border-line opacity-70' : 'border-line',
-            fixture.status === 'ready' && editable ? 'border-accent' : '',
+            selected ? 'border-accent ring-2 ring-accent bg-accent-soft' : fixture.status === 'bye' ? 'border-dashed border-line bg-surface opacity-70' : 'border-line bg-surface',
             clickable ? 'cursor-pointer hover:border-accent hover:bg-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent' : '',
         ]"
         @click="clickable && emit('open', fixture)"
     >
+        <div class="flex w-full shrink-0 items-center justify-between gap-2 border-b border-line bg-sunken px-3 py-2 text-[10px]">
+            <span class="min-w-0 truncate font-display tracking-wider uppercase">{{ label }}</span>
+            <span class="shrink-0 font-mono" :class="selected ? 'text-accent' : fixture.status === 'finished' ? 'text-win' : 'text-ink-2'">{{ selected ? 'Редактируется' : statusLabel }}</span>
+        </div>
         <div
             v-for="(row, index) in rows" :key="row.side"
-            class="flex flex-1 items-center gap-2 pr-3"
+            class="flex w-full flex-1 items-center gap-2 pr-3"
             :class="index === 0 ? 'border-b border-line' : ''"
         >
             <!-- Победителя держит грань слева: она читается быстрее, чем начертание. -->

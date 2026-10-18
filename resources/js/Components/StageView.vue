@@ -13,12 +13,20 @@ const props = defineProps({
     stage: { type: Object, required: true },
     editable: Boolean,
     dense: Boolean,
+    externalScore: Boolean,
+    selectedFixtureId: { type: String, default: null },
     resultUrl: { type: Function, default: () => '' },
     pairUrl: { type: String, default: '' },
 });
+const emit = defineEmits(['open']);
+function openFixture(fixture) {
+    if (props.externalScore) emit('open', fixture);
+    else opened.value = fixture;
+}
 
 const names = computed(() => Object.fromEntries(props.tournament.participants.map((p) => [p.id, p.name])));
 const opened = ref(null);
+const activeFixtureId = computed(() => props.externalScore ? props.selectedFixtureId : opened.value?.id);
 const pairing = ref(false);
 const total = computed(() => props.stage.rounds.flatMap((r) => r.fixtures).filter((f) => f.status !== 'bye'));
 const done = computed(() => total.value.filter((f) => f.status === 'finished').length);
@@ -55,10 +63,10 @@ function pairNextRound() {
             </button>
         </div>
 
-        <DoubleBracket v-if="stage.format === 'double_elimination'" :stage="stage" :names="names" :editable="editable" @open="opened = $event" />
-        <Bracket v-else-if="stage.format === 'single_elimination'" :stage="stage" :names="names" :editable="editable" @open="opened = $event" />
-        <RoundsList v-else :stage="stage" :names="names" :editable="editable" :dense="dense" @open="opened = $event" />
+        <DoubleBracket v-if="stage.format === 'double_elimination'" :stage="stage" :names="names" :editable="editable" :selected-fixture-id="activeFixtureId" @open="openFixture" />
+        <Bracket v-else-if="stage.format === 'single_elimination'" :stage="stage" :names="names" :editable="editable" :selected-fixture-id="activeFixtureId" @open="openFixture" />
+        <RoundsList v-else :stage="stage" :names="names" :editable="editable" :dense="dense" :selected-fixture-id="activeFixtureId" @open="openFixture" />
 
-        <ScoreDialog v-if="editable" :fixture="opened" :names="names" :rules="tournament.rules" :result-url="resultUrl" @close="opened = null" />
+        <ScoreDialog v-if="editable && !externalScore" :fixture="opened" :names="names" :rules="tournament.rules" :result-url="resultUrl" @close="opened = null" />
     </div>
 </template>
